@@ -28,6 +28,11 @@ public class BoardLabel extends JLabel {
 		for (PegHole h : holes) {
 			h.setScale(i);
 		}
+		setSize((int)(base.getIconWidth() * scale), (int)(base.getIconHeight() * scale));
+	}
+	
+	public ImageIcon getBase() {
+		return base;
 	}
 	
 //	public float getScale() {

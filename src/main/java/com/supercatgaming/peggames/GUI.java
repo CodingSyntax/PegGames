@@ -50,8 +50,8 @@ public class GUI {
 		bPlay.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				//selectGame();
-				test();
+				selectGame();
+				//test();
 			}
 		});
 		bOptions.addMouseListener(new MouseAdapter() {
@@ -120,13 +120,21 @@ public class GUI {
 //		addToLayer(ho);
 //		frame.repaint();
 		BoardLabel bL = new BoardLabel(new ImageIcon(getResources("GameImages/TicTacToe.png")), new int[][][] {
-				{{227, 689}, {819, 692}, {1419, 694}},
-				{{216, 1294}, {812, 1301}, {1413, 1307}},
-				{{216, 1914}, {816, 1918}, {1406, 1923}}});
+				{{45, 138}, {164, 138}, {284, 139}},
+				{{43, 259}, {162, 260}, {283, 261}},
+				{{43, 383}, {163, 384}, {281, 385}}
+		});
 		addToLayer(bL);
 		//bL.setScale(.2f);
 		bL.setBounds(0,0, bL.getIcon().getIconWidth(), bL.getIcon().getIconHeight());
 		frame.repaint();
+	}
+	
+	public static int getLayerWidth() {
+		return layer.getWidth();
+	}
+	public static int getLayerHeight() {
+		return layer.getHeight();
 	}
 	
 	public static void addCL(ComponentListener cL) {
@@ -232,8 +240,9 @@ public class GUI {
 		play.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				//removeAllCLs();
-				//layer.removeAll();
+				removeAllCLs();
+				layer.removeAll();
+				frame.repaint();
 				Games.get().play(); //Provide Layer?
 			}
 		});

@@ -2,12 +2,14 @@ package com.supercatgaming.peggames;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 public class PegHole extends JLabel {
 	public static final ImageIcon HOLE_IMG = new ImageIcon(Handler.getResources("GameImages/PegHole.png"));
 	public static final ImageIcon MASK = new ImageIcon(Handler.getResources("GameImages/HoleMask.png"));
-	private static final int DEPTH = 75; //How far into the hole the peg is rendered
+	private static final int DEPTH = 15; //How far into the hole the peg is rendered
 	private ImageIcon preScale = HOLE_IMG;
 	float scale = 1;
 	private int x, y; //Coords when scale = 1
@@ -25,6 +27,13 @@ public class PegHole extends JLabel {
 		this.y = y;
 		this.index = index;
 		setPeg(peg);
+		
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				setPeg(new Peg(0));
+			}
+		});
 	}
 	
 	public int[] getPos() {

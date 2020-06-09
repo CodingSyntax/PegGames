@@ -34,7 +34,7 @@ public class Peg {
 				image.setRGB(x, y, (alpha) + (red << 16) + (green << 8) + blue);
 			}
 		}
-		icon = Handler.scale(5.5f, new ImageIcon(image));
+		icon = new ImageIcon(image);
 	}
 	
 	public ImageIcon getIcon() {

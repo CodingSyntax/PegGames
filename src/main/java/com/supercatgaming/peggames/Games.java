@@ -1,8 +1,16 @@
 package com.supercatgaming.peggames;
 
+import com.supercatgaming.peggames.Components.CButton;
+
 import javax.swing.*;
 
-import static com.supercatgaming.peggames.Handler.getResources;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import static com.supercatgaming.peggames.Handler.*;
+import static com.supercatgaming.peggames.Handler.scale;
 
 public final class Games {
 	private Games() {/*Don't allow instantiating*/}
@@ -44,9 +52,35 @@ public final class Games {
 		
 		public abstract void play();
 		BoardLabel setup() {
+			CButton quit = new CButton("Quit");
 			BoardLabel l = new BoardLabel(new ImageIcon(getResources(getImgLoc())), holesPos);
-			l.setScale(.2f);
-			l.setBounds(0, 0, l.getIcon().getIconWidth(), l.getIcon().getIconHeight());
+			ComponentAdapter cA = new ComponentAdapter() {
+				@Override
+				public void componentResized(ComponentEvent e) {
+					int lw = GUI.getLayerWidth();
+					int lh = GUI.getLayerHeight();
+					
+					quit.setSize(lw / 8, Math.min(Math.max(20, lh / 20), 50));
+					quit.setLocation((lw - quit.getWidth()) / 2, lh - (quit.getHeight() + 5));
+					
+					int iw = l.getBase().getIconWidth();
+					int ih = l.getBase().getIconHeight();
+					//calculates how many of the base image fits into lw..., lh...
+					float min = Math.min((lw - 20f) / iw, (lh - ((quit.getHeight() + 5f) * 2) - 5) / ih);
+					l.setScale(Math.min(min, 1.5f));
+					l.setLocation((lw - l.getIcon().getIconWidth()) / 2, (lh - l.getIcon().getIconHeight()) / 2);
+				}
+			};
+			quit.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					//TODO: save progress
+					GUI.mainMenu(false);
+				}
+			});
+			GUI.addToLayer(quit, l);
+			GUI.addCL(cA);
+			cA.componentResized(null);
 			return l;
 		}
 		
@@ -65,9 +99,9 @@ public final class Games {
 		TicTacToe() {
 			super("TicTacToe","Players: 2. Place \"X's\" and \"O's\" trying to get three in a row.",
 					new int[][][] {
-							{{227, 689}, {819, 692}, {1419, 694}},
-							{{216, 1294}, {812, 1301}, {1413, 1307}},
-							{{216, 1914}, {816, 1918}, {1406, 1923}}
+							{{45, 138}, {164, 138}, {284, 139}},
+							{{43, 259}, {162, 260}, {283, 261}},
+							{{43, 383}, {163, 384}, {281, 385}}
 			});
 		}
 		
@@ -81,16 +115,16 @@ public final class Games {
 			super("Conqueror", "Players: 1. Fill all the holes with pegs except for one. " +
 					"Jump a peg and remove it from the game. Continue until you can't make any more jumps.",
 					new int[][][] {
-							{{1262, 298}},
-							{{1013, 733}, {1513, 729}},
-							{{772, 1159}, {1262, 1150}, {1764, 1152}},
-							{{503, 1580}, {1021, 1587}, {1515, 1582}, {2001, 1574}},
-							{{268, 2034}, {777, 2037}, {1271, 2032}, {1780, 2021}, {2272, 2010}}
+							{{252, 60}},
+							{{203, 147}, {303, 146}},
+							{{154, 232}, {252, 230}, {353, 230}},
+							{{101, 316}, {204, 317}, {303, 316}, {400, 315}},
+							{{54, 407}, {155, 407}, {254, 406}, {356, 404}, {454, 402}}
 					});
 		}
 		
 		public void play() {
-		
+			setup();
 		}
 	}
 	public static class Conqueror2 extends Conqueror {
@@ -98,16 +132,16 @@ public final class Games {
 			super();
 			IMG_LOC = "Conqueror2";
 			holesPos = new int[][][] {
-					{{1344, 363}},
-					{{1090, 825}, {1611, 825}},
-					{{820, 1281}, {1350, 1281}, {1870, 1281}},
-					{{559, 1743}, {1089, 1743}, {1609, 1743}, {2141, 1743}},
-					{{287, 2181}, {817, 2181}, {1357, 2181}, {1887, 2181}, {2417, 2181}}
+					{{269, 73}},
+					{{218, 165}, {322, 165}},
+					{{164, 256}, {270, 256}, {374, 256}},
+					{{112, 349}, {218, 349}, {322, 349}, {428, 349}},
+					{{57, 436}, {163, 436}, {271, 436}, {377, 436}, {483, 436}}
 			};
 		}
 		
 		public void play() {
-		
+			setup();
 		}
 	}
 	
@@ -117,13 +151,12 @@ public final class Games {
 					"goes from the starting star hole and put a peg into that hole. Continue the same procedure from " +
 					"that star hole until you cannot make a move. Fill 7 or 8 star holes to win.",
 					new int[][][] {{
-							{730, 797}, {1701, 1095}, {749, 2097}, {1768, 1700}, {378, 1184}, {1314, 2086}, {1306, 793},
-							{319, 1668}
-			}});
+						{146, 159}, {340, 219}, {150, 419}, {354, 340}, {76, 237}, {263, 417}, {261, 159}, {64, 334}
+					}});
 		}
 		
 		public void play() {
-		
+			setup();
 		}
 	}
 	
@@ -135,13 +168,13 @@ public final class Games {
 					"or a number shown on one die. If a player lands on the opponent's peg, they must go back two " +
 					"holes. Winner  is the first player to get to the eleventh hole.",
 					new int[][][] {{
-							{167, 713}, {474, 1188}, {1063, 1297}, {1656, 1294}, {2244, 1286}, {2837, 1155},
-							{3137, 683}, {2819, 223}, {2226, 105}, {1639, 105}, {1049, 117}, {467, 248}
+							{33, 174}, {95, 269}, {213, 290}, {331, 290}, {449, 288}, {567, 262}, {627, 168}, {564, 76},
+							{445, 52}, {328, 52}, {210, 54}, {93, 81}
 			}});
 		}
 		
 		public void play() {
-		
+			setup();
 		}
 	}
 	
@@ -153,13 +186,13 @@ public final class Games {
 					"combination of the two dice. Player continues until he cannot roll to move to the next hole. " +
 					"Player 2 then goes. If a player lands on opponent's peg, opponent goes back to start.",
 					new int[][][] {{
-							{252, 697}, {484, 1133}, {1142, 1230}, {1713, 1253}, {2239, 1251}, {2872, 1109}, {3085, 665},
-							{2911, 215}, {2258, 90}, {1683, 85}, {1139, 92}, {486, 209}
+							{50, 174}, {97, 262}, {228, 281}, {343, 286}, {448, 285}, {574, 257}, {617, 168}, {582, 78},
+							{452, 53}, {337, 52}, {228, 53}, {97, 77}
 			}});
 		}
 		
 		public void play() {
-		
+			setup();
 		}
 	}
 	
@@ -171,13 +204,13 @@ public final class Games {
 					"The object is to remove all the pegs. When you can't remove the number rolled your turn is over " +
 					"if playing against others. The player with the least amount of pegs remaining is the winner.",
 					new int[][][] {{
-							{171, 814}, {513, 806}, {834, 805}, {1171, 806}, {1495, 801}, {1833, 806}, {2157, 802},
-							{2494, 804}, {2823, 799}, {3156, 811}
+							{34, 163}, {103, 161}, {167, 161}, {234, 161}, {299, 160}, {367, 161}, {431, 160},
+							{499, 161}, {565, 160}, {631, 162}
 			}});
 		}
 		
 		public void play() {
-		
+			setup();
 		}
 	}
 	
@@ -187,13 +220,13 @@ public final class Games {
 					"holes leaving center 2 holes empty. The object is to move blue pegs to the right and red pegs " +
 					"to the left. You can only move pegs by jumping another peg or moving 1 space to an empty hole.",
 					new int[][][] {{
-							{223, 310}, {547, 297}, {891, 294}, {1218, 289}, {1557, 285}, {1893, 284}, {2224, 286},
-							{2556, 282}, {2885, 269}, {3210, 273}
+							{45, 62}, {109, 59}, {178, 59}, {244, 58}, {311, 57}, {379, 57}, {445, 57}, {511, 56},
+							{577, 54}, {642, 55}
 			}});
 		}
 		
 		public void play() {
-		
+			setup();
 		}
 	}
 	
@@ -204,15 +237,15 @@ public final class Games {
 					"move on, continue in the same way -- For example: to move to position 3, roll a 3 or a " +
 					"combination equalling three. First to reach position 10 wins.",
 					new int[][][] {
-							{{207, 153}, {520, 154}, {824, 150}, {1141, 153}, {1444, 154}, {1760, 156}, {2061, 166},
-									{2375, 165}, {2684, 163}, {2999, 161}},
-							{{201, 854}, {517, 855}, {818, 863}, {1134, 865}, {1441, 860}, {1760, 856}, {2057, 896},
-									{2374, 864}, {2682, 865}, {2991, 864}}
+							{{41, 53}, {104, 53}, {165, 52}, {228, 53}, {289, 53}, {352, 53}, {412, 55}, {475, 55},
+									{537, 55}, {600, 54}},
+							{{40, 193}, {103, 193}, {164, 195}, {227, 195}, {288, 194}, {352, 193}, {411, 197},
+									{475, 195}, {536, 195}, {598, 195}}
 			});
 		}
 		
 		public void play() {
-		
+			setup();
 		}
 	}
 }
