@@ -1,0 +1,12 @@
+Yeas, what to do:
+-Pegs
+	-Drag from palette colors to create pegs.
+	-Point of peg on mouse cursor
+	-Release drops peg; if mouse hovers over hole, peg is added to hole
+	-If there are free floating pegs and you drag another, floater is deleted
+	-right click to delete
+	-dropping peg on palette will also delete
+	-can drag from hole as well, and r-click will also delete (makes it easier in freeplay, so might as well)
+	-Click palette color to select
+    	-Click empty hole to fill with that color peg
+    	-Click peg (or hole w/ peg) to change that peg's color

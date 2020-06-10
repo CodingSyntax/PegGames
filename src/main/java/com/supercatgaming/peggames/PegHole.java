@@ -7,15 +7,17 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 public class PegHole extends JLabel {
-	public static final ImageIcon HOLE_IMG = new ImageIcon(Handler.getResources("GameImages/PegHole.png"));
-	public static final ImageIcon MASK = new ImageIcon(Handler.getResources("GameImages/HoleMask.png"));
+	private static final ImageIcon HOLE_IMG = new ImageIcon(Handler.getResources("GameImages/PegHole.png"));
+	private static final ImageIcon MASK = new ImageIcon(Handler.getResources("GameImages/HoleMask.png"));
 	private static final int DEPTH = 15; //How far into the hole the peg is rendered
 	private ImageIcon preScale = HOLE_IMG;
-	float scale = 1;
+	private float scale = 1;
 	private int x, y; //Coords when scale = 1
 	private Peg peg;
 	private int holeY = 0;
 	private int holeX = 0;
+	
+	private static int defaultColor = 0;
 	
 	private int[] index; //"array pos" used for game mechanics/rules
 	
@@ -31,9 +33,26 @@ public class PegHole extends JLabel {
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				setPeg(new Peg(0));
+				if ((Options.freePlay || (peg != null && !Games.is2P())) && e.getButton() == 1) {
+					setPeg(new Peg(defaultColor));
+				} else if (Options.freePlay && e.getButton() == 3) {
+						removePeg();
+				} else {
+					if (!Games.get().isDiceOnly()) {
+					
+					}
+					//Abide by rules somehow. Check a method that returns if a peg can be placed here...
+				}
 			}
 		});
+	}
+	
+	public Peg getPeg() {
+		return peg;
+	}
+	
+	public int[] getIndex() {
+		return index;
 	}
 	
 	public int[] getPos() {
@@ -45,6 +64,11 @@ public class PegHole extends JLabel {
 		if (p != null) stitch();
 		else setIcon(Handler.scale(scale, preScale));
 		setBounds();
+	}
+	
+	public static void setDefaultColor(int c) {
+		if (c >= Options.getColors().length) c = Options.getColors().length - 1;
+		defaultColor = c;
 	}
 	
 	private void setBounds() {
@@ -86,10 +110,14 @@ public class PegHole extends JLabel {
 		setBounds();
 	}
 	
-	public void removePeg() {
+	public Peg removePeg() {
+		Peg p = peg;
 		peg = null;
 		preScale = HOLE_IMG;
 		setIcon(Handler.scale(scale, preScale));
+		holeY = 0;
+		holeX = 0;
 		setBounds();
+		return p;
 	}
 }

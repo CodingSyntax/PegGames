@@ -154,6 +154,12 @@ public class GUI {
 		}
 	}
 	
+	public static void removeFromLayer(Component... components) {
+		for (Component c : components) {
+			layer.remove(c);
+		}
+	}
+	
 	public static int getBottom(Component c) {
 		return c.getY() + c.getHeight();
 	}
@@ -243,7 +249,7 @@ public class GUI {
 				removeAllCLs();
 				layer.removeAll();
 				frame.repaint();
-				Games.get().play(); //Provide Layer?
+				Games.get().play();
 			}
 		});
 		

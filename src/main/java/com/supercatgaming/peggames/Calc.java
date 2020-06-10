@@ -4,6 +4,9 @@ import java.util.Scanner;
 
 public class Calc {
 	public static void main(String[] args) {
+		while (true) System.out.println(Games.rollDie());
+	}
+	public static void test(String[] args) {
 //		Scanner input = new Scanner(System.in);
 //		String in;
 //		do {

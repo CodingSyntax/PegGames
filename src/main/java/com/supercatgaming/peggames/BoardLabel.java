@@ -2,6 +2,7 @@ package com.supercatgaming.peggames;
 
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class BoardLabel extends JLabel {
 	ArrayList<PegHole> holes = new ArrayList<>();
@@ -29,6 +30,26 @@ public class BoardLabel extends JLabel {
 			h.setScale(i);
 		}
 		setSize((int)(base.getIconWidth() * scale), (int)(base.getIconHeight() * scale));
+	}
+	
+	public Peg getPegAt(int[] pos) {
+		for (PegHole hole : holes) {
+			if (Arrays.equals(hole.getIndex(), pos)) {
+				return hole.getPeg();
+			}
+		}
+		System.err.println("Peg hole with index " + pos[0] + ", " + pos[1] + " couldn't be found! Returning null");
+		return null;
+	}
+	
+	public PegHole getHoleAt(int[] pos) {
+		for (PegHole hole : holes) {
+			if (Arrays.equals(hole.getIndex(), pos)) {
+				return hole;
+			}
+		}
+		System.err.println("Peg hole with index " + pos[0] + ", " + pos[1] + " couldn't be found! Returning null");
+		return null;
 	}
 	
 	public ImageIcon getBase() {
