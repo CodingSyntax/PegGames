@@ -17,8 +17,8 @@ public final class Games {
 	private Games() {/*Don't allow instantiating*/}
 	private static int game = 0;
 	
-	private static int p1Color;
-	private static int p2Color;
+	private static int p1Color = -1;
+	private static int p2Color = -1;
 	private static int pTurn = 1; //player turn
 	private static Random die = new Random();
 	private static boolean is2P = false;
@@ -79,7 +79,7 @@ public final class Games {
 		
 		public void updateTitle(String add) {
 			title.setText(NAME + add);
-			//cA.componentResized(null);
+			cA.componentResized(null);
 		}
 		
 		public abstract boolean requiresFrom(); //If the game has the player move a peg from one place to another
@@ -106,6 +106,9 @@ public final class Games {
 			buttons.setLayout(boxlayout);
 			int loc = 0;
 			
+			CButton die1 = new CButton(true);
+			CButton die2 = new CButton(true);
+			
 			cA = new ComponentAdapter() {
 				@Override
 				public void componentResized(ComponentEvent e) {
@@ -114,10 +117,15 @@ public final class Games {
 					
 					int w = lw / 8;
 					int h = Math.min(Math.max(20, lh / 20), 50);
-					quit.setSize(w, h);
-					quit.setLocation((lw / 2) - (w + 5), lh - (quit.getHeight() + 5));
-					roll.setSize(w, h);
-					roll.setLocation((lw / 2) + 5, lh - (quit.getHeight() + 5));
+					if (isDiceOnly()) {
+						quit.setSize(w, h);
+						quit.setLocation((lw / 2) - (w + 5), lh - (quit.getHeight() + 5));
+						roll.setSize(w, h);
+						roll.setLocation((lw / 2) + 5, lh - (quit.getHeight() + 5));
+					} else {
+						quit.setSize(w, h);
+						quit.setLocation((lw - w) / 2, lh - (h + 5));
+					}
 					scrollPane.setSize(40, lh);
 					scrollPane.setLocation(lw - 40, 0);
 					
@@ -138,6 +146,14 @@ public final class Games {
 					}
 					title.setSize(Handler.getLengthHTML(title), Handler.getHeightHTML(title));
 					title.setLocation((lw - title.getWidth()) / 2, board.getY() - (title.getHeight() + 10));
+					
+					int dieSize = Math.min(lw/8, lh/8);
+					die1.setSize(dieSize, dieSize);
+					die1.setLocation((lw / 2) - (dieSize + 5), (lh - dieSize) / 2);
+					die1.resize();
+					die2.setSize(dieSize, dieSize);
+					die2.setLocation((lw / 2) + 5, (lh - dieSize) / 2);
+					die2.resize();
 				}
 			};
 			
@@ -156,18 +172,15 @@ public final class Games {
 							if (player[0] == 1) {
 								p1Color = lo;
 								player[0]++;
-								title.setText(NAME + " - Select P2 Color");
 								board.getHoleAt(new int[] {0, 0}).setPeg(new Peg(p1Color));
-								cA.componentResized(null);
+								updateTitle(" - Select P2 Color");
 							} else if (lo != p1Color) {
 								p2Color = lo;
-								title.setText(NAME + " - P1's turn");
 								GUI.removeFromLayer(scrollPane);
-								cA.componentResized(null);
+								updateTitle(" - P1's turn");
 								
 							} else {
-								title.setText(NAME + " - Select a different color for P2");
-								cA.componentResized(null);
+								updateTitle(" - Select a different color for P2");
 							}
 						} else
 							PegHole.setDefaultColor(lo);
@@ -217,11 +230,24 @@ public final class Games {
 			roll.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					rolled(rollDie(), rollDie());
+					if (isDiceOnly() && p2Color != -1)
+						if (Options.useRealDice) {
+							if (roll.getText().equals("OK"))
+							{
+								roll.setText("Roll");
+								GUI.removeFromLayer(die1, die2);
+								rolled(die1.getDieNum(), die2.getDieNum());
+								cA.componentResized(null);
+							} else {
+								GUI.addToLayer(die1, die2);
+								updateTitle(" - P" + pTurn + ", what did you roll?");
+								roll.setText("OK");
+							}
+						} else rolled(rollDie(), rollDie());
 				}
 			});
 			
-			GUI.addToLayer(title, board, scrollPane, quit, roll);
+			GUI.addToLayer(title, board, scrollPane, quit, isDiceOnly() ? roll : null);
 			GUI.addCL(cA);
 			cA.componentResized(null);
 		}

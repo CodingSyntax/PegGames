@@ -38,7 +38,7 @@ public class Handler {
 	 * @param icon ImageIcon to be scaled
 	 * @return Scaled ImageIcon
 	 */
-	static ImageIcon scale(float scale, ImageIcon icon) {
+	public static ImageIcon scale(float scale, ImageIcon icon) {
 		if (scale == 1) return icon;
 		return scale((int)(icon.getIconWidth() * scale), (int)(icon.getIconHeight() * scale), icon);
 	}
@@ -48,7 +48,7 @@ public class Handler {
 	 * @param icon ImageIcon to be scaled
 	 * @return Scaled ImageIcon
 	 */
-	static ImageIcon scale(int scale, ImageIcon icon) {
+	public static ImageIcon scale(int scale, ImageIcon icon) {
 		return scale(icon.getIconWidth() * scale, icon.getIconHeight() * scale, icon);
 	}
 	/**
@@ -58,7 +58,7 @@ public class Handler {
 	 * @param icon ImageIcon to be scaled
 	 * @return Scaled ImageIcon
 	 */
-	static ImageIcon scale(int newWidth, int newHeight, ImageIcon icon) {
+	public static ImageIcon scale(int newWidth, int newHeight, ImageIcon icon) {
 		//Convert icon to buffered
 		BufferedImage sourceBufferedImage = toBufferedImage(icon.getImage());
 		//Create new buffered with specified h & w and scale

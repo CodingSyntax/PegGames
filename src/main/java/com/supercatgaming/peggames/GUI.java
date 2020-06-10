@@ -150,7 +150,8 @@ public class GUI {
 	
 	public static void addToLayer(Component... components) {
 		for (Component c : components) {
-			layer.add(c);
+			if (c != null)
+				layer.add(c, 0, 0);
 		}
 	}
 	
