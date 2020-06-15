@@ -33,13 +33,7 @@ public class BoardLabel extends JLabel {
 	}
 	
 	public Peg getPegAt(int[] pos) {
-		for (PegHole hole : holes) {
-			if (Arrays.equals(hole.getIndex(), pos)) {
-				return hole.getPeg();
-			}
-		}
-		System.err.println("Peg hole with index " + pos[0] + ", " + pos[1] + " couldn't be found! Returning null");
-		return null;
+		return getHoleAt(pos).getPeg();
 	}
 	
 	public PegHole getHoleAt(int[] pos) {
@@ -56,15 +50,19 @@ public class BoardLabel extends JLabel {
 		return base;
 	}
 	
-	public void dropPeg(int x, int y, Peg p) {
+	public PegHole dropPeg(int x, int y, Peg p) {
 		x -= getX();
 		y -= getY();
 		for (PegHole h : holes) {
-			if(h.checkPos(x, y) && (Options.freePlay/* || check for rules*/)) {
-				h.setPeg(p);
-				GUI.repaintLayer();
+			if(h.checkPos(x, y)) {
+				if (Options.freePlay) {
+					h.setPeg(p);
+					GUI.repaintLayer();
+				}
+				return h;
 			}
 		}
+		return null;
 	}
 	
 //	public float getScale() {

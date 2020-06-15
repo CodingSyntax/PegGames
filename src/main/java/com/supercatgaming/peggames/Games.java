@@ -10,7 +10,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Random;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static com.supercatgaming.peggames.Handler.*;
@@ -63,8 +62,12 @@ public final class Games {
 	public static void dropPeg(Point po, Peg p) {
 		if (po.x >= GUI.getLayerWidth() - Game.COLOR_DIST) {
 			Peg.delete(p);
-		} else
-			get().board.dropPeg(po.x, po.y, p);
+		} else {
+			PegHole h = get().board.dropPeg(po.x, po.y, p);
+			if (h != null && !Options.freePlay) {
+				get().check(h.getIndex());
+			}
+		}
 	}
 	
 	public static abstract class Game {
@@ -95,14 +98,20 @@ public final class Games {
 		
 		public abstract boolean requiresFrom(); //If the game has the player move a peg from one place to another
 		public abstract boolean isDiceOnly(); //This game has nothing to do with moving pegs or stats, just dice
-		public abstract boolean check(int[] pos);
+		public abstract void check(int[] pos);
 		public abstract void play();
 		public abstract void rolled(int dice, int dice2);
+		public abstract void begin();
 		
 		void setup() {
 			setup(false);
 		}
 		void setup(boolean selectColors) {
+			//reset
+			p1Color = -1;
+			p2Color = -1;
+			pTurn = 1;
+			
 			title = new JLabel(NAME + (Options.freePlay ? " - Freeplay" : selectColors ? " - Select P1 Color"
 					: ""));
 			CButton quit = new CButton("Quit");
@@ -185,13 +194,13 @@ public final class Games {
 							if (player[0] == 1) {
 								p1Color = lo;
 								player[0]++;
-								board.getHoleAt(new int[] {0, 0}).setPeg(new Peg(p1Color));
 								updateTitle(" - Select P2 Color");
 							} else if (lo != p1Color) {
 								p2Color = lo;
 								GUI.removeFromLayer(scrollPane);
 								updateTitle(" - P1's turn");
 								GUI.repaintLayer();
+								begin();
 							} else {
 								updateTitle(" - Select a different color for P2");
 							}
@@ -203,7 +212,6 @@ public final class Games {
 					public void mouseExited(MouseEvent e) {
 						if (!selectColors)
 							if (drag && !pegSpawned) {
-								Peg.test();
 								if (!Peg.isLoose(lo)) {
 									curr = new Peg(lo);
 									GUI.addToLayer(curr);
@@ -252,10 +260,9 @@ public final class Games {
 				}
 			});
 			roll.addMouseListener(new MouseAdapter() {
-				boolean rolling = false;
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					if (isDiceOnly() && p2Color != -1)
+					if (isDiceOnly() && (p2Color != -1 || Options.freePlay))
 						if (Options.useRealDice) {
 							if (roll.getText().equals("OK"))
 							{
@@ -269,33 +276,33 @@ public final class Games {
 								roll.setText("OK");
 							}
 						} else {
-							if (roll.getText().equals("OK"))
-							{
-								roll.setText("Roll");
-								rolled(die1.getDieNum(), die2.getDieNum());
-								final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
-								executor.schedule(() -> {
+							switch (roll.getText()) {
+								case "Stop":
+									roll.setText("OK");
+									break;
+								case "Roll":
+									GUI.addToLayer(die1, die2);
+									updateTitle(" - P" + pTurn + ", rolling");
+									roll.setText("Stop");
+									Thread randomize = new Thread(() -> {
+										while (!roll.getText().equals("OK")) {
+											die1.setDieNum(rollDie());
+											die2.setDieNum(rollDie());
+											try {
+												TimeUnit.MILLISECONDS.sleep(20);
+											} catch (InterruptedException exception) {
+												exception.printStackTrace();
+											}
+										}
+									});
+									randomize.start();
+									break;
+								case "OK":
+									roll.setText("Roll");
+									rolled(die1.getDieNum(), die2.getDieNum());
 									GUI.removeFromLayer(die1, die2);
 									cA.componentResized(null);
-									rolling = false;
-								}, 1, TimeUnit.SECONDS);
-							} else if (!rolling) {
-								GUI.addToLayer(die1, die2);
-								updateTitle(" - P" + pTurn + ", rolling");
-								roll.setText("OK");
-								rolling = true;
-								Thread randomize = new Thread(() -> {
-									while (!roll.getText().equals("Roll")) {
-										die1.setDieNum(rollDie());
-										die2.setDieNum(rollDie());
-										try {
-											TimeUnit.MILLISECONDS.sleep(20);
-										} catch (InterruptedException exception) {
-											exception.printStackTrace();
-										}
-									}
-								});
-								randomize.start();
+									break;
 							}
 						}
 				}
@@ -327,6 +334,8 @@ public final class Games {
 			});
 		}
 		
+		Peg free;
+		
 		public boolean requiresFrom() {
 			return false;
 		}
@@ -335,8 +344,12 @@ public final class Games {
 			return false;
 		}
 		
-		public boolean check(int[] pos) {
-			return board.getPegAt(pos) == null;
+		public void check(int[] pos) {
+			if (board.getPegAt(pos) == null) {
+				board.getHoleAt(pos).setPeg(free);
+				nextPlayerTurn();
+				summonPeg();
+			}
 		}
 		
 		public void play() {
@@ -344,6 +357,20 @@ public final class Games {
 		}
 		
 		public void rolled(int dice, int dice2) {}
+		
+		public void begin() {
+			summonPeg();
+		}
+		
+		private void summonPeg() {
+			if (pTurn == 1)
+				free = new Peg(p1Color);
+			else
+				free = new Peg(p2Color);
+			free.update();
+			free.locateAt(GUI.getLayerWidth() - GUI.getLayerWidth() / 8, GUI.getLayerHeight() / 2);
+			GUI.addToLayer(free);
+		}
 	}
 	
 	public static class Conqueror extends Game {
@@ -366,8 +393,8 @@ public final class Games {
 			return false;
 		}
 		
-		public boolean check(int[] pos) {
-			return false;
+		public void check(int[] pos) {
+		
 		}
 		
 		public void play() {
@@ -375,6 +402,10 @@ public final class Games {
 		}
 		
 		public void rolled(int dice, int dice2) {}
+		
+		public void begin() {
+		
+		}
 	}
 	public static class Conqueror2 extends Conqueror {
 		Conqueror2() {
@@ -408,8 +439,8 @@ public final class Games {
 			return false;
 		}
 		
-		public boolean check(int[] pos) {
-			return false;
+		public void check(int[] pos) {
+		
 		}
 		
 		public void play() {
@@ -417,6 +448,10 @@ public final class Games {
 		}
 		
 		public void rolled(int dice, int dice2) {}
+		
+		public void begin() {
+		
+		}
 	}
 	
 	public static class Racing extends Game {
@@ -443,8 +478,8 @@ public final class Games {
 			return true;
 		}
 		
-		public boolean check(int[] pos) {
-			return false;
+		public void check(int[] pos) {
+		
 		}
 		
 		public void play() {
@@ -494,6 +529,12 @@ public final class Games {
 			
 			nextPlayerTurn();
 		}
+		
+		public void begin() {
+			p1 = 0;
+			p2 = 0;
+			board.getHoleAt(new int[] {0, 0}).setPeg(new Peg(p1Color));
+		}
 	}
 	
 	public static class HorseRace extends Game {
@@ -517,8 +558,8 @@ public final class Games {
 			return true;
 		}
 		
-		public boolean check(int[] pos) {
-			return false;
+		public void check(int[] pos) {
+		
 		}
 		
 		public void play() {
@@ -526,6 +567,10 @@ public final class Games {
 		}
 		
 		public void rolled(int dice, int dice2) {
+		
+		}
+		
+		public void begin() {
 		
 		}
 	}
@@ -551,8 +596,8 @@ public final class Games {
 			return true;
 		}
 		
-		public boolean check(int[] pos) {
-			return false;
+		public void check(int[] pos) {
+		
 		}
 		
 		public void play() {
@@ -560,6 +605,10 @@ public final class Games {
 		}
 		
 		public void rolled(int dice, int dice2) {
+		
+		}
+		
+		public void begin() {
 		
 		}
 	}
@@ -583,8 +632,8 @@ public final class Games {
 			return false;
 		}
 		
-		public boolean check(int[] pos) {
-			return false;
+		public void check(int[] pos) {
+		
 		}
 		
 		public void play() {
@@ -592,6 +641,10 @@ public final class Games {
 		}
 		
 		public void rolled(int dice, int dice2) {}
+		
+		public void begin() {
+		
+		}
 	}
 	
 	public static class No1Race extends Game {
@@ -616,8 +669,8 @@ public final class Games {
 			return true;
 		}
 		
-		public boolean check(int[] pos) {
-			return false;
+		public void check(int[] pos) {
+		
 		}
 		
 		public void play() {
@@ -625,6 +678,10 @@ public final class Games {
 		}
 		
 		public void rolled(int dice, int dice2) {
+		
+		}
+		
+		public void begin() {
 		
 		}
 	}

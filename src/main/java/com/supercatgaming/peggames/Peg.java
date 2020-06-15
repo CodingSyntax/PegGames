@@ -53,7 +53,8 @@ public class Peg extends JLabel {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getButton() == 3) {
-					delete(p);
+					if (Options.freePlay)
+						delete(p);
 				}
 			}
 		});
@@ -65,6 +66,11 @@ public class Peg extends JLabel {
 		Point l = GUI.getMousePos();
 		setSize(getIcon().getIconWidth(), getIcon().getIconHeight());
 		setLocation(l.x - (getIcon().getIconWidth() / 2), l.y - (getIcon().getIconHeight()) + (int)(scale * 5));
+	}
+	
+	public void locateAt(int x, int y) {
+		setSize(getIcon().getIconWidth(), getIcon().getIconHeight());
+		setLocation(x, y);
 	}
 	
 	private void addColor() {
@@ -115,12 +121,6 @@ public class Peg extends JLabel {
 		pegs.remove(p);
 		GUI.removeFromLayer(p);
 		GUI.repaintLayer();
-	}
-	
-	public static void test() {
-		for (Peg p : pegs) {
-			System.out.println(p);
-		}
 	}
 	
 	public static boolean isLoose(int color) {

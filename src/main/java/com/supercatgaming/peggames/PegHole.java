@@ -41,9 +41,8 @@ public class PegHole extends JLabel {
 					removePeg(true);
 				} else {
 					if (!Games.get().isDiceOnly()) {
-
+						Games.get().check(index);
 					}
-					//Abide by rules somehow. Check a method that returns if a peg can be placed here...
 				}
 			}
 
