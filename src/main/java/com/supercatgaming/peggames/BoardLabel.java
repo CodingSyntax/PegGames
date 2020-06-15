@@ -13,9 +13,9 @@ public class BoardLabel extends JLabel {
 		super(i);
 		base = i;
 		scale = 1;
-		for (int y = 0; y < holesPos.length; y++) {
-			for (int x = 0; x < holesPos[y].length; x++) {
-				PegHole ph = new PegHole(holesPos[y][x][0], holesPos[y][x][1], new int[] {x, y});
+		for (int x = 0; x < holesPos.length; x++) {
+			for (int y = 0; y < holesPos[x].length; y++) {
+				PegHole ph = new PegHole(holesPos[x][y][0], holesPos[x][y][1], new int[] {x, y});
 				add(ph);
 				ph.setBounds(ph.getPos()[0], ph.getPos()[1], ph.getIcon().getIconWidth(), ph.getIcon().getIconHeight());
 				holes.add(ph);
@@ -54,6 +54,17 @@ public class BoardLabel extends JLabel {
 	
 	public ImageIcon getBase() {
 		return base;
+	}
+	
+	public void dropPeg(int x, int y, Peg p) {
+		x -= getX();
+		y -= getY();
+		for (PegHole h : holes) {
+			if(h.checkPos(x, y) && (Options.freePlay/* || check for rules*/)) {
+				h.setPeg(p);
+				repaint();
+			}
+		}
 	}
 	
 //	public float getScale() {

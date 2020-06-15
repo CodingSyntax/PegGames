@@ -161,6 +161,16 @@ public class GUI {
 		}
 	}
 	
+	public static void repaintLayer() {
+		layer.repaint();
+	}
+	
+	public static Point getMousePos() {
+		Point p = MouseInfo.getPointerInfo().getLocation();
+		SwingUtilities.convertPointFromScreen(p, layer);
+		return p;
+	}
+	
 	public static int getBottom(Component c) {
 		return c.getY() + c.getHeight();
 	}

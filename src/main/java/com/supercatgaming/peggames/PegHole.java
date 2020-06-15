@@ -24,27 +24,55 @@ public class PegHole extends JLabel {
 	public PegHole(int x, int y, int[] index) {
 		this(x, y, index, null);
 	}
-	public PegHole(int x, int y, int[] index, Peg peg) {
+	public PegHole(int x, int y, int[] index, Peg p) {
 		this.x = x;
 		this.y = y;
 		this.index = index;
-		setPeg(peg);
+		setPeg(p);
 		
-		addMouseListener(new MouseAdapter() {
+		MouseAdapter mA = new MouseAdapter() {
+			Peg p;
+			boolean removed = false;
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if ((Options.freePlay || (peg != null && !Games.is2P())) && e.getButton() == 1) {
 					setPeg(new Peg(defaultColor));
 				} else if (Options.freePlay && e.getButton() == 3) {
-						removePeg();
+					removePeg(true);
 				} else {
 					if (!Games.get().isDiceOnly()) {
-					
+
 					}
 					//Abide by rules somehow. Check a method that returns if a peg can be placed here...
 				}
 			}
-		});
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if (removed)
+					p.followMouse(false);
+				removed = false;
+			}
+
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				Point m = GUI.getMousePos();
+				if (!checkPos(m.x - getX(), m.y - getY()) && !removed) {
+					p = removePeg();
+					if (p != null) {
+						removed = true;
+						GUI.addToLayer(p);
+					}
+				}
+				if (p != null) {
+					p.locateAt();
+					p.followMouse(true);
+				}
+			}
+		};
+		
+		addMouseMotionListener(mA);
+		addMouseListener(mA);
 	}
 	
 	public Peg getPeg() {
@@ -61,7 +89,11 @@ public class PegHole extends JLabel {
 	
 	public void setPeg(Peg p) {
 		peg = p;
-		if (p != null) stitch();
+		if (p != null) {
+			stitch();
+			GUI.removeFromLayer(p);
+			p.hole = this;
+		}
 		else setIcon(Handler.scale(scale, preScale));
 		setBounds();
 	}
@@ -77,13 +109,13 @@ public class PegHole extends JLabel {
 	
 	private void stitch() {
 		BufferedImage hole = Handler.toBufferedImage(HOLE_IMG.getImage());
-		BufferedImage p = Handler.toBufferedImage(peg.getIcon().getImage());
+		BufferedImage p = Handler.toBufferedImage(peg.getBaseIcon().getImage());
 		BufferedImage mask = Handler.toBufferedImage(MASK.getImage());
 		
 		BufferedImage result = new BufferedImage(p.getWidth(), p.getHeight() - DEPTH, BufferedImage.TYPE_INT_ARGB);
 		
-		holeY = result.getHeight() - hole.getHeight();
-		holeX = (p.getWidth() - hole.getWidth()) / 2;
+		holeY = result.getHeight() - hole.getHeight(); //Height of peg (that extrudes from hole)
+		holeX = (p.getWidth() - hole.getWidth()) / 2; //Half of width of peg (that extrudes...)
 		
 		// Draw the image on to the buffered image
 		Graphics2D bGr = result.createGraphics();
@@ -106,12 +138,22 @@ public class PegHole extends JLabel {
 	
 	public void setScale(float i) {
 		scale = i;
-		if (preScale != null) setIcon(Handler.scale(i, preScale));
+		if (preScale != null) setIcon(Handler.scale(scale, preScale));
 		setBounds();
+		Peg.setScale(scale);
 	}
 	
 	public Peg removePeg() {
+		return removePeg(false);
+	}
+	
+	public Peg removePeg(boolean delete) {
 		Peg p = peg;
+		if (p != null) {
+			p.hole = null;
+			if (delete)
+				Peg.delete(p);
+		}
 		peg = null;
 		preScale = HOLE_IMG;
 		setIcon(Handler.scale(scale, preScale));
@@ -119,5 +161,17 @@ public class PegHole extends JLabel {
 		holeX = 0;
 		setBounds();
 		return p;
+	}
+	
+	/**
+	 *
+	 * @param x X-coord to check
+	 * @param y Y-coord to check
+	 * @return {@code true} if the given position is contained within the hole part of this object; {@code false}
+	 * otherwise
+	 */
+	public boolean checkPos(int x, int y) {
+		return x >= this.x * scale && x <= (this.x * scale) + (getWidth() - (holeX * 2 * scale)) &&
+				y >= this.y * scale && y <= ((this.y * scale) + getHeight() - (holeY * scale));
 	}
 }

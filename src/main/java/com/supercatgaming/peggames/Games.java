@@ -58,6 +58,13 @@ public final class Games {
 		return games[game];
 	}
 	
+	public static void dropPeg(Point po, Peg p) {
+		if (po.x >= GUI.getLayerWidth() - Game.COLOR_DIST) {
+			Peg.delete(p);
+		} else
+			get().board.dropPeg(po.x, po.y, p);
+	}
+	
 	public static abstract class Game {
 		protected Game(String name, String inst, int[][][] holesPos) {
 			this(name, name, inst, holesPos);
@@ -69,6 +76,8 @@ public final class Games {
 			this.holesPos = holesPos;
 		}
 		
+		public static final int COLOR_DIST = 40;
+		
 		String NAME;
 		String IMG_LOC = "";
 		String INST = "";
@@ -77,7 +86,7 @@ public final class Games {
 		JLabel title;
 		ComponentAdapter cA;
 		
-		public void updateTitle(String add) {
+		void updateTitle(String add) {
 			title.setText(NAME + add);
 			cA.componentResized(null);
 		}
@@ -126,8 +135,8 @@ public final class Games {
 						quit.setSize(w, h);
 						quit.setLocation((lw - w) / 2, lh - (h + 5));
 					}
-					scrollPane.setSize(40, lh);
-					scrollPane.setLocation(lw - 40, 0);
+					scrollPane.setSize(COLOR_DIST, lh);
+					scrollPane.setLocation(lw - COLOR_DIST, 0);
 					
 					int iw = board.getBase().getIconWidth();
 					int ih = board.getBase().getIconHeight();
@@ -163,9 +172,11 @@ public final class Games {
 				CButton b = new CButton();
 				b.setBackground(c);
 				b.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-				b.addMouseListener(new MouseAdapter() {
+				
+				MouseAdapter mA = new MouseAdapter() {
 					boolean drag = false;
-					boolean spawnPeg = false;
+					boolean pegSpawned = false;
+					Peg curr = null;
 					@Override
 					public void mouseClicked(MouseEvent e) {
 						if (selectColors) {
@@ -178,7 +189,6 @@ public final class Games {
 								p2Color = lo;
 								GUI.removeFromLayer(scrollPane);
 								updateTitle(" - P1's turn");
-								
 							} else {
 								updateTitle(" - Select a different color for P2");
 							}
@@ -189,15 +199,16 @@ public final class Games {
 					@Override
 					public void mouseExited(MouseEvent e) {
 						if (!selectColors)
-							if (drag) {
-								spawnPeg = true;
+							if (drag && !pegSpawned) {
+								Peg.test();
+								if (!Peg.isLoose(lo)) {
+									curr = new Peg(lo);
+									GUI.addToLayer(curr);
+								}
+								curr.locateAt();
+								curr.followMouse(true);
+								pegSpawned = true;
 							}
-					}
-					
-					@Override
-					public void mouseEntered(MouseEvent e) {
-						if (!selectColors)
-							spawnPeg = false;
 					}
 					
 					@Override
@@ -210,12 +221,22 @@ public final class Games {
 					@Override
 					public void mouseReleased(MouseEvent e) {
 						if (!selectColors) {
-							if (spawnPeg)
-								System.out.println("Peg");
 							drag = false;
+							pegSpawned = false;
+							if (curr != null)
+								curr.followMouse(false);
 						}
 					}
-				});
+					
+					@Override
+					public void mouseDragged(MouseEvent e) {
+						if (curr != null)
+							curr.locateAt();
+					}
+				};
+				
+				b.addMouseMotionListener(mA);
+				b.addMouseListener(mA);
 				loc++;
 				buttons.add(b);
 			}
@@ -401,7 +422,7 @@ public final class Games {
 		public void rolled(int dice, int dice2) {
 			if (pTurn == 1) {
 				if ((p1 == 0 && dice == dice2) || dice == p1 + 1 || dice2 == p1 + 1 || dice + dice2 == p1 + 1) {
-					Peg p = board.getHoleAt(new int[] {p1, 0}).removePeg();
+					Peg p = board.getHoleAt(new int[] {0, p1}).removePeg();
 					if (p1 == 0 && p2 == 0) {
 						board.getHoleAt(new int[] {0, 0}).setPeg(new Peg(p2Color));
 					}
@@ -409,11 +430,11 @@ public final class Games {
 					if (p1 == 12) {
 						p1 = 0;
 					}
-					PegHole h = board.getHoleAt(new int[] {p1, 0});
+					PegHole h = board.getHoleAt(new int[] {0, p1});
 					if (h.getPeg() != null) {
 						p2 -= 2;
 						p2 = Math.max(p2, 0);
-						board.getHoleAt(new int[] {p2, 0}).setPeg(h.removePeg());
+						board.getHoleAt(new int[] {0, p2}).setPeg(h.removePeg());
 					}
 					h.setPeg(p);
 				}
@@ -423,16 +444,16 @@ public final class Games {
 					if (p2 == 0 && p1 == 0) {
 						p = new Peg(p2Color);
 					} else
-						p = board.getHoleAt(new int[] {p2, 0}).removePeg();
+						p = board.getHoleAt(new int[] {0, p2}).removePeg();
 					p2++;
 					if (p2 == 12) {
 						p2 = 0;
 					}
-					PegHole h = board.getHoleAt(new int[] {p2, 0});
+					PegHole h = board.getHoleAt(new int[] {0, p2});
 					if (h.getPeg() != null) {
 						p1 -= 2;
 						p1 = Math.max(p1, 0);
-						board.getHoleAt(new int[] {p1, 0}).setPeg(h.removePeg());
+						board.getHoleAt(new int[] {0, p1}).setPeg(h.removePeg());
 					}
 					h.setPeg(p);
 				}
