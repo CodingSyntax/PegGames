@@ -62,7 +62,7 @@ public class BoardLabel extends JLabel {
 		for (PegHole h : holes) {
 			if(h.checkPos(x, y) && (Options.freePlay/* || check for rules*/)) {
 				h.setPeg(p);
-				repaint();
+				GUI.repaintLayer();
 			}
 		}
 	}

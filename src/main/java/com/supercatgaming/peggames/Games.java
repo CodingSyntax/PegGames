@@ -10,6 +10,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Random;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static com.supercatgaming.peggames.Handler.*;
 
@@ -189,6 +191,7 @@ public final class Games {
 								p2Color = lo;
 								GUI.removeFromLayer(scrollPane);
 								updateTitle(" - P1's turn");
+								GUI.repaintLayer();
 							} else {
 								updateTitle(" - Select a different color for P2");
 							}
@@ -249,6 +252,7 @@ public final class Games {
 				}
 			});
 			roll.addMouseListener(new MouseAdapter() {
+				boolean rolling = false;
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					if (isDiceOnly() && p2Color != -1)
@@ -264,7 +268,36 @@ public final class Games {
 								updateTitle(" - P" + pTurn + ", what did you roll?");
 								roll.setText("OK");
 							}
-						} else rolled(rollDie(), rollDie());
+						} else {
+							if (roll.getText().equals("OK"))
+							{
+								roll.setText("Roll");
+								rolled(die1.getDieNum(), die2.getDieNum());
+								final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+								executor.schedule(() -> {
+									GUI.removeFromLayer(die1, die2);
+									cA.componentResized(null);
+									rolling = false;
+								}, 1, TimeUnit.SECONDS);
+							} else if (!rolling) {
+								GUI.addToLayer(die1, die2);
+								updateTitle(" - P" + pTurn + ", rolling");
+								roll.setText("OK");
+								rolling = true;
+								Thread randomize = new Thread(() -> {
+									while (!roll.getText().equals("Roll")) {
+										die1.setDieNum(rollDie());
+										die2.setDieNum(rollDie());
+										try {
+											TimeUnit.MILLISECONDS.sleep(20);
+										} catch (InterruptedException exception) {
+											exception.printStackTrace();
+										}
+									}
+								});
+								randomize.start();
+							}
+						}
 				}
 			});
 			

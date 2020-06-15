@@ -56,17 +56,19 @@ public class PegHole extends JLabel {
 
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				Point m = GUI.getMousePos();
-				if (!checkPos(m.x - getX(), m.y - getY()) && !removed) {
-					p = removePeg();
-					if (p != null) {
-						removed = true;
-						GUI.addToLayer(p);
+				if (Options.freePlay) {
+					Point m = GUI.getMousePos();
+					if (!checkPos(m.x - getX(), m.y - getY()) && !removed) {
+						p = removePeg();
+						if (p != null) {
+							removed = true;
+							GUI.addToLayer(p);
+						}
 					}
-				}
-				if (p != null) {
-					p.locateAt();
-					p.followMouse(true);
+					if (p != null) {
+						p.locateAt();
+						p.followMouse(true);
+					}
 				}
 			}
 		};

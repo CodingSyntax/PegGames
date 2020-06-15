@@ -1,6 +1,7 @@
 package com.supercatgaming.peggames.Components;
 
 import com.supercatgaming.peggames.Handler;
+import com.supercatgaming.peggames.Options;
 import com.supercatgaming.peggames.Sounds;
 
 import javax.swing.*;
@@ -36,6 +37,10 @@ public class CButton extends JButton {
 	public int getDieNum() {
 		return dieNum + 1;
 	}
+	public void setDieNum(int num) {
+		dieNum = num - 1;
+		resize();
+	}
 	
 	public void resize() {
 		setIcon(Handler.scale(getWidth(), getHeight(), dice[dieNum]));
@@ -47,18 +52,21 @@ public class CButton extends JButton {
 		int id = e.getID();
 		switch(id) {
 			case MouseEvent.MOUSE_CLICKED:
-				Sounds.Click.play();
-				if (isDie) {
-					if (e.getButton() == 1) {
-						if (++dieNum == 6) dieNum = 0;
-					} else if (e.getButton() == 3) {
-						if (--dieNum == -1) dieNum = 5;
+				if (Options.useRealDice || !isDie) {
+					Sounds.Click.play();
+					if (isDie) {
+						if (e.getButton() == 1) {
+							if (++dieNum == 6) dieNum = 0;
+						} else if (e.getButton() == 3) {
+							if (--dieNum == -1) dieNum = 5;
+						}
+						resize();
 					}
-					resize();
 				}
 				break;
 			case MouseEvent.MOUSE_ENTERED:
-				Sounds.Hover.play();
+				if (Options.useRealDice || !isDie)
+					Sounds.Hover.play();
 				break;
 		}
 	}
