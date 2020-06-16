@@ -352,6 +352,7 @@ public final class Games {
 				if (checkWin() != -1)
 					complete = true;
 				summonPeg();
+				GUI.repaintLayer();
 			}
 		}
 		
