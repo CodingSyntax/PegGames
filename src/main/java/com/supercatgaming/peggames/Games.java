@@ -335,6 +335,7 @@ public final class Games {
 		}
 		
 		Peg free;
+		boolean complete = false;
 		
 		public boolean requiresFrom() {
 			return false;
@@ -348,8 +349,9 @@ public final class Games {
 			if (board.getPegAt(pos) == null) {
 				board.getHoleAt(pos).setPeg(free);
 				nextPlayerTurn();
+				if (checkWin() != -1)
+					complete = true;
 				summonPeg();
-				System.out.println(checkWin());
 			}
 		}
 		
@@ -429,17 +431,20 @@ public final class Games {
 		public void rolled(int dice, int dice2) {}
 		
 		public void begin() {
+			complete = false;
 			summonPeg();
 		}
 		
 		private void summonPeg() {
-			if (pTurn == 1)
-				free = new Peg(p1Color);
-			else
-				free = new Peg(p2Color);
-			free.update();
-			free.locateAt(GUI.getLayerWidth() - GUI.getLayerWidth() / 8, GUI.getLayerHeight() / 2);
-			GUI.addToLayer(free);
+			if (!Options.freePlay && !complete) {
+				if (pTurn == 1)
+					free = new Peg(p1Color);
+				else
+					free = new Peg(p2Color);
+				free.update();
+				free.locateAt(GUI.getLayerWidth() - GUI.getLayerWidth() / 8, GUI.getLayerHeight() / 2);
+				GUI.addToLayer(free);
+			}
 		}
 	}
 	
