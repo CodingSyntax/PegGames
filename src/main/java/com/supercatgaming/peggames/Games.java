@@ -349,7 +349,77 @@ public final class Games {
 				board.getHoleAt(pos).setPeg(free);
 				nextPlayerTurn();
 				summonPeg();
+				System.out.println(checkWin());
 			}
+		}
+		
+		/**
+		 * Checks for win
+		 * @return -1 if game is undecided, 0 if tie, 1 if player 1, 2 if player 2.
+		 */
+		private int checkWin() {
+			//Check tie
+			int win = -1; //tie
+			for (PegHole h : board.holes) {
+				if (h.getPeg() == null) {
+					win = -2; //undecided
+					break;
+				}
+			}
+			
+			int dia1Prev = -1, dia2Prev = -1;
+			boolean dia1Same = true, dia2Same = true;
+			
+			for (int x = 0; x < 3; x++) {
+				int yPrev = -1, xPrev = -1;
+				boolean ySame = true, xSame = true;
+				for (int y = 0; y < 3; y++) {
+					if (yPrev == -1)
+						yPrev = Peg.getColor(board.getPegAt(new int[] {x, y}));
+					if (xPrev == -1)
+						xPrev = Peg.getColor(board.getPegAt(new int[] {y, x}));
+					//Don't check if it's already determined that no win can happen
+					if (ySame || xSame) {
+						int cur = Peg.getColor(board.getPegAt(new int[] {x, y}));
+						if (cur != yPrev || yPrev == -1)
+							ySame = false;
+						cur = Peg.getColor(board.getPegAt(new int[] {y, x}));
+						if (cur != xPrev || xPrev == -1)
+							xSame = false;
+					}
+				}
+				if (ySame)
+					return checkPlayer(yPrev);
+				if (xSame)
+					return checkPlayer(xPrev);
+				//diagonals
+				if (dia1Prev == -1)
+					dia1Prev = Peg.getColor(board.getPegAt(new int[] {x, x}));
+				if (dia2Prev == -1)
+					dia2Prev = Peg.getColor(board.getPegAt(new int[] {Math.abs(x - 2), x}));
+				//Don't check if it's already determined that no win can happen
+				if (dia1Same || dia2Same) {
+					int cur = Peg.getColor(board.getPegAt(new int[] {x, x}));
+					if (cur != dia1Prev || dia1Prev == -1)
+						dia1Same = false;
+					cur = Peg.getColor(board.getPegAt(new int[] {Math.abs(x - 2), x}));
+					if (cur != dia2Prev || dia2Prev == -1)
+						dia2Same = false;
+				}
+			}
+			if (dia1Same)
+				return checkPlayer(dia1Prev);
+			if (dia2Same)
+				return checkPlayer(dia2Prev);
+			return win + 1;
+		}
+		
+		private int checkPlayer(int color) {
+			if (color == p1Color)
+				return 1;
+			if (color == p2Color)
+				return 2;
+			return -1;
 		}
 		
 		public void play() {

@@ -132,6 +132,13 @@ public class Peg extends JLabel {
 		return false;
 	}
 	
+	public static int getColor(Peg p) {
+		if (p == null) {
+			return -1;
+		}
+		return p.color;
+	}
+	
 	@Override
 	public String toString() {
 		return "Peg{" +
