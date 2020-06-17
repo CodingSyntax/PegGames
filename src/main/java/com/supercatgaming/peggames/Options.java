@@ -19,8 +19,9 @@ public final class Options {
 				defaultColors.add(Color.RED);
 				defaultColors.add(Color.GREEN.darker());
 				defaultColors.add(Color.WHITE);
-				defaultColors.add(Color.ORANGE);
+				defaultColors.add(new Color(255, 100, 0)); //Orange
 				init = true;
+				Options.save();
 			}
 		}
 	}

@@ -60,11 +60,14 @@ public final class Games {
 	}
 	
 	public static void dropPeg(Point po, Peg p) {
-		if (po.x >= GUI.getLayerWidth() - Game.COLOR_DIST) {
+		if (po.y >= GUI.getLayerHeight() - 15 || po.x >= GUI.getLayerWidth() - 15)
+			p.locateAt(GUI.getLayerWidth() - GUI.getLayerWidth() / 8, GUI.getLayerHeight() / 2);
+		else if (po.x >= GUI.getLayerWidth() - Game.COLOR_DIST && Game.deleteOnPalette) {
 			Peg.delete(p);
 		} else {
 			PegHole h = get().board.dropPeg(po.x, po.y, p);
 			if (h != null && !Options.freePlay) {
+				get().providePeg(p);
 				get().check(h.getIndex());
 			}
 		}
@@ -82,10 +85,11 @@ public final class Games {
 		}
 		
 		public static final int COLOR_DIST = 40;
+		static boolean deleteOnPalette = true;
 		
 		String NAME;
-		String IMG_LOC = "";
-		String INST = "";
+		String IMG_LOC;
+		String INST;
 		int[][][] holesPos;
 		BoardLabel board;
 		JLabel title;
@@ -96,8 +100,8 @@ public final class Games {
 			cA.componentResized(null);
 		}
 		
-		public abstract boolean requiresFrom(); //If the game has the player move a peg from one place to another
 		public abstract boolean isDiceOnly(); //This game has nothing to do with moving pegs or stats, just dice
+		public abstract void providePeg(Peg p);
 		public abstract void check(int[] pos);
 		public abstract void play();
 		public abstract void rolled(int dice, int dice2);
@@ -117,7 +121,7 @@ public final class Games {
 			CButton quit = new CButton("Quit");
 			CButton roll = new CButton("Roll");
 			board = new BoardLabel(new ImageIcon(getResources(getImgLoc())), holesPos);
-			if (selectColors) is2P = true;
+			is2P = selectColors;
 			//Colors
 			JPanel buttons = new JPanel();
 			JScrollPane scrollPane = new JScrollPane(buttons, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
@@ -198,6 +202,7 @@ public final class Games {
 							} else if (lo != p1Color) {
 								p2Color = lo;
 								GUI.removeFromLayer(scrollPane);
+								deleteOnPalette = false;
 								updateTitle(" - P1's turn");
 								GUI.repaintLayer();
 								begin();
@@ -210,9 +215,9 @@ public final class Games {
 					
 					@Override
 					public void mouseExited(MouseEvent e) {
-						if (!selectColors)
+						if (Options.freePlay)
 							if (drag && !pegSpawned) {
-								if (!Peg.isLoose(lo)) {
+								if (!Peg.isLoose(lo) || curr == null) {
 									curr = new Peg(lo);
 									GUI.addToLayer(curr);
 								}
@@ -224,7 +229,7 @@ public final class Games {
 					
 					@Override
 					public void mousePressed(MouseEvent e) {
-						if (!selectColors)
+						if (Options.freePlay)
 							if (e.getButton() == 1)
 								drag = true;
 					}
@@ -250,6 +255,9 @@ public final class Games {
 				b.addMouseListener(mA);
 				loc++;
 				buttons.add(b);
+				
+				if(!selectColors)
+					begin();
 			}
 			
 			quit.addMouseListener(new MouseAdapter() {
@@ -336,14 +344,13 @@ public final class Games {
 		
 		Peg free;
 		boolean complete = false;
-		
-		public boolean requiresFrom() {
-			return false;
-		}
+		String winner = "null";
 		
 		public boolean isDiceOnly() {
 			return false;
 		}
+		
+		public void providePeg(Peg p) {}
 		
 		public void check(int[] pos) {
 			if (board.getPegAt(pos) == null) {
@@ -362,10 +369,12 @@ public final class Games {
 		 */
 		private int checkWin() {
 			//Check tie
-			int win = -1; //tie
+			int win = 0;
+			winner = "Tie";
 			for (PegHole h : board.holes) {
 				if (h.getPeg() == null) {
-					win = -2; //undecided
+					win = -1;
+					winner = "Undecided. This should not be visible!";
 					break;
 				}
 			}
@@ -391,10 +400,14 @@ public final class Games {
 							xSame = false;
 					}
 				}
-				if (ySame)
+				if (ySame) {
+					winner = "P" + checkPlayer(yPrev);
 					return checkPlayer(yPrev);
-				if (xSame)
+				}
+				if (xSame) {
+					winner = "P" + checkPlayer(xPrev);
 					return checkPlayer(xPrev);
+				}
 				//diagonals
 				if (dia1Prev == -1)
 					dia1Prev = Peg.getColor(board.getPegAt(new int[] {x, x}));
@@ -410,11 +423,15 @@ public final class Games {
 						dia2Same = false;
 				}
 			}
-			if (dia1Same)
+			if (dia1Same) {
+				winner = "P" + checkPlayer(dia1Prev);
 				return checkPlayer(dia1Prev);
-			if (dia2Same)
+			}
+			if (dia2Same) {
+				winner = "P" + checkPlayer(dia2Prev);
 				return checkPlayer(dia2Prev);
-			return win + 1;
+			}
+			return win;
 		}
 		
 		private int checkPlayer(int color) {
@@ -445,6 +462,8 @@ public final class Games {
 				free.update();
 				free.locateAt(GUI.getLayerWidth() - GUI.getLayerWidth() / 8, GUI.getLayerHeight() / 2);
 				GUI.addToLayer(free);
+			} else if (complete) {
+				updateTitle(" - Winner: " + winner);
 			}
 		}
 	}
@@ -461,13 +480,12 @@ public final class Games {
 							{{54, 407}, {155, 407}, {254, 406}, {356, 404}, {454, 402}}
 					});
 		}
-		public boolean requiresFrom() {
-			return true;
-		}
 		
 		public boolean isDiceOnly() {
 			return false;
 		}
+		
+		public void providePeg(Peg p) {}
 		
 		public void check(int[] pos) {
 		
@@ -480,7 +498,20 @@ public final class Games {
 		public void rolled(int dice, int dice2) {}
 		
 		public void begin() {
-		
+			board.getHoleAt(new int[] {0,0}).setPeg(new Peg(0)); //Blue
+			board.getHoleAt(new int[] {1,0}).setPeg(new Peg(0)); //Blue
+			board.getHoleAt(new int[] {1,1}).setPeg(new Peg(0)); //Blue
+			board.getHoleAt(new int[] {2,0}).setPeg(new Peg(2)); //Red
+			board.getHoleAt(new int[] {2,1}).setPeg(new Peg(4)); //White
+			board.getHoleAt(new int[] {2,2}).setPeg(new Peg(2)); //Red
+			board.getHoleAt(new int[] {3,0}).setPeg(new Peg(0)); //Blue
+			board.getHoleAt(new int[] {3,1}).setPeg(new Peg(1)); //Yellow
+			board.getHoleAt(new int[] {3,2}).setPeg(new Peg(1)); //Yellow
+			board.getHoleAt(new int[] {3,3}).setPeg(new Peg(2)); //Red
+			board.getHoleAt(new int[] {4,0}).setPeg(new Peg(0)); //Blue
+			board.getHoleAt(new int[] {4,1}).setPeg(new Peg(0)); //Blue
+			board.getHoleAt(new int[] {4,2}).setPeg(new Peg(4)); //White
+			board.getHoleAt(new int[] {4,3}).setPeg(new Peg(2)); //Red
 		}
 	}
 	public static class Conqueror2 extends Conqueror {
@@ -507,13 +538,11 @@ public final class Games {
 					}});
 		}
 		
-		public boolean requiresFrom() {
-			return true;
-		}
-		
 		public boolean isDiceOnly() {
 			return false;
 		}
+		
+		public void providePeg(Peg p) {}
 		
 		public void check(int[] pos) {
 		
@@ -546,13 +575,11 @@ public final class Games {
 		int p1 = 0;
 		int p2 = 0;
 		
-		public boolean requiresFrom() {
-			return true;
-		}
-		
 		public boolean isDiceOnly() {
 			return true;
 		}
+		
+		public void providePeg(Peg p) {}
 		
 		public void check(int[] pos) {
 		
@@ -571,7 +598,9 @@ public final class Games {
 						board.getHoleAt(new int[] {0, 0}).setPeg(new Peg(p2Color));
 					}
 					p1++;
-					if (p1 == 12) {
+					if (p1 == 11) {
+						updateTitle(" - P1 wins!");
+					} else if (p1 == 12) {
 						p1 = 0;
 					}
 					PegHole h = board.getHoleAt(new int[] {0, p1});
@@ -590,7 +619,9 @@ public final class Games {
 					} else
 						p = board.getHoleAt(new int[] {0, p2}).removePeg();
 					p2++;
-					if (p2 == 12) {
+					if (p2 == 11) {
+						updateTitle(" - P2 wins!");
+					} else if (p2 == 12) {
 						p2 = 0;
 					}
 					PegHole h = board.getHoleAt(new int[] {0, p2});
@@ -626,13 +657,16 @@ public final class Games {
 			}});
 		}
 		
-		public boolean requiresFrom() {
-			return true;
-		}
+		int p1 = 0;
+		int p2 = 0;
+		boolean dPS = true; //determine player start
+		boolean p1Start = true; //if p1 starts.
 		
 		public boolean isDiceOnly() {
 			return true;
 		}
+		
+		public void providePeg(Peg p) {}
 		
 		public void check(int[] pos) {
 		
@@ -640,14 +674,93 @@ public final class Games {
 		
 		public void play() {
 			setup(!Options.freePlay);
+			
 		}
 		
 		public void rolled(int dice, int dice2) {
-		
+			if (dPS) {
+				if (pTurn == 1) {
+					p1 = dice + dice2;
+					nextPlayerTurn();
+				} else {
+					p2 = dice + dice2;
+					if (p1 > p2) {
+						board.getHoleAt(new int[] {0, 0}).setPeg(new Peg(p1Color));
+						dPS = false;
+						p1 = 0;
+						p2 = 0;
+						nextPlayerTurn();
+					} else if (p2 > p1) {
+						board.getHoleAt(new int[] {0, 0}).setPeg(new Peg(p2Color));
+						dPS = false;
+						p1Start = false;
+						p1 = 0;
+						p2 = 0;
+					} else {
+						nextPlayerTurn();
+					}
+				}
+			}
+			else if (pTurn == 1) {
+				if (dice == p1 + 2 || dice2 == p1 + 2 || dice + dice2 == p1 + 2) {
+					Peg p;
+					if (p1 == 0 && p2 == 0) {
+						if (p1Start) {
+							p = board.getHoleAt(new int[] {0, p1}).removePeg();
+							board.getHoleAt(new int[] {0, 0}).setPeg(new Peg(p2Color));
+						} else
+							p = new Peg(p1Color);
+					} else
+						p = board.getHoleAt(new int[] {0, p1}).removePeg();
+					p1++;
+					if (p1 == 11) {
+						updateTitle(" - P1 wins!");
+					} else if (p1 == 12) {
+						p1 = 0;
+					}
+					PegHole h = board.getHoleAt(new int[] {0, p1});
+					if (h.getPeg() != null) {
+						p2 = 0;
+						board.getHoleAt(new int[] {0, p2}).setPeg(h.removePeg());
+					}
+					h.setPeg(p);
+				}
+				else
+					nextPlayerTurn();
+			} else {
+				if (dice == p2 + 2 || dice2 == p2 + 2 || dice + dice2 == p2 + 2) {
+					Peg p;
+					if (p2 == 0 && p1 == 0) {
+						if (p1Start)
+							p = new Peg(p2Color);
+						else {
+							p = board.getHoleAt(new int[] {0, p1}).removePeg();
+							board.getHoleAt(new int[] {0, 0}).setPeg(new Peg(p1Color));
+						}
+					} else
+						p = board.getHoleAt(new int[] {0, p2}).removePeg();
+					p2++;
+					if (p2 == 11) {
+						updateTitle(" - P2 wins!");
+					} else if (p2 == 12) {
+						p2 = 0;
+					}
+					PegHole h = board.getHoleAt(new int[] {0, p2});
+					if (h.getPeg() != null) {
+						p1 = 0;
+						board.getHoleAt(new int[] {0, p1}).setPeg(h.removePeg());
+					}
+					h.setPeg(p);
+				}
+				else
+					nextPlayerTurn();
+			}
 		}
 		
 		public void begin() {
-		
+			dPS = true;
+			p1 = 0;
+			p2 = 0;
 		}
 	}
 	
@@ -664,13 +777,11 @@ public final class Games {
 			}});
 		}
 		
-		public boolean requiresFrom() {
-			return false;
-		}
-		
 		public boolean isDiceOnly() {
 			return true;
 		}
+		
+		public void providePeg(Peg p) {}
 		
 		public void check(int[] pos) {
 		
@@ -685,7 +796,16 @@ public final class Games {
 		}
 		
 		public void begin() {
-		
+			board.getHoleAt(new int[] {0,0}).setPeg(new Peg(0));
+			board.getHoleAt(new int[] {0,1}).setPeg(new Peg(0));
+			board.getHoleAt(new int[] {0,2}).setPeg(new Peg(0));
+			board.getHoleAt(new int[] {0,3}).setPeg(new Peg(0));
+			board.getHoleAt(new int[] {0,4}).setPeg(new Peg(0));
+			board.getHoleAt(new int[] {0,5}).setPeg(new Peg(0));
+			board.getHoleAt(new int[] {0,6}).setPeg(new Peg(0));
+			board.getHoleAt(new int[] {0,7}).setPeg(new Peg(0));
+			board.getHoleAt(new int[] {0,8}).setPeg(new Peg(0));
+			board.getHoleAt(new int[] {0,9}).setPeg(new Peg(0));
 		}
 	}
 	
@@ -700,13 +820,11 @@ public final class Games {
 			}});
 		}
 		
-		public boolean requiresFrom() {
-			return true;
-		}
-		
 		public boolean isDiceOnly() {
 			return false;
 		}
+		
+		public void providePeg(Peg p) {}
 		
 		public void check(int[] pos) {
 		
@@ -719,7 +837,15 @@ public final class Games {
 		public void rolled(int dice, int dice2) {}
 		
 		public void begin() {
-		
+			board.getHoleAt(new int[] {0,0}).setPeg(new Peg(0)); //Blue
+			board.getHoleAt(new int[] {0,1}).setPeg(new Peg(0)); //Blue
+			board.getHoleAt(new int[] {0,2}).setPeg(new Peg(0)); //Blue
+			board.getHoleAt(new int[] {0,3}).setPeg(new Peg(0)); //Blue
+			
+			board.getHoleAt(new int[] {0,6}).setPeg(new Peg(2)); //Red
+			board.getHoleAt(new int[] {0,7}).setPeg(new Peg(2)); //Red
+			board.getHoleAt(new int[] {0,8}).setPeg(new Peg(2)); //Red
+			board.getHoleAt(new int[] {0,9}).setPeg(new Peg(2)); //Red
 		}
 	}
 	
@@ -737,13 +863,11 @@ public final class Games {
 			});
 		}
 		
-		public boolean requiresFrom() {
-			return true;
-		}
-		
 		public boolean isDiceOnly() {
 			return true;
 		}
+		
+		public void providePeg(Peg p) {}
 		
 		public void check(int[] pos) {
 		

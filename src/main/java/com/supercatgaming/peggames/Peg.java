@@ -5,16 +5,19 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.util.ArrayList;
 
 public class Peg extends JLabel {
 	static Color[] colors = Options.getColors();
-	static ImageIcon desat = new ImageIcon(Handler.getResources("Peg.png"));
+	final static ImageIcon desat = new ImageIcon(Handler.getResources("Peg.png"));
+	final static ImageIcon highlight = new ImageIcon(Handler.getResources("Peg_Highlight.png"));
 	static float scale = 1f;
 	static ArrayList<Peg> pegs = new ArrayList<>();
 	
 	int color;
 	ImageIcon baseIcon;
+	ImageIcon highlightIco;
 	boolean follow = false;
 	PegHole hole = null;
 	
@@ -73,6 +76,10 @@ public class Peg extends JLabel {
 		setLocation(x, y);
 	}
 	
+	public ImageIcon getHighlight() {
+		return highlightIco;
+	}
+	
 	private void addColor() {
 		Color b = new Color(colors[color].getRed(), colors[color].getGreen(), colors[color].getBlue(), 128);
 		//Convert icon to buffered
@@ -92,6 +99,13 @@ public class Peg extends JLabel {
 			}
 		}
 		baseIcon = new ImageIcon(image);
+		ColorModel cm = image.getColorModel();
+		BufferedImage i2 = new BufferedImage(cm, image.copyData(image.getRaster().createCompatibleWritableRaster()),
+				cm.isAlphaPremultiplied(), null);
+		Graphics2D g2 = i2.createGraphics();
+		g2.drawImage(Handler.toBufferedImage(highlight.getImage()), 0, 0, null);
+		g2.dispose();
+		highlightIco = new ImageIcon(i2);
 		update();
 	}
 	
@@ -104,6 +118,9 @@ public class Peg extends JLabel {
 	
 	public void update() {
 		setIcon(Handler.scale(scale, baseIcon));
+		setSize(getIcon().getIconWidth(), getIcon().getIconHeight());
+		if (getY() >= GUI.getLayerHeight() - 15 || getX() >= GUI.getLayerWidth() - 15)
+			locateAt(GUI.getLayerWidth() - GUI.getLayerWidth() / 8, GUI.getLayerHeight() / 2);
 	}
 	
 	public ImageIcon getBaseIcon() {
@@ -137,13 +154,5 @@ public class Peg extends JLabel {
 			return -1;
 		}
 		return p.color;
-	}
-	
-	@Override
-	public String toString() {
-		return "Peg{" +
-				"color=" + color +
-				", hole=" + hole +
-				'}';
 	}
 }

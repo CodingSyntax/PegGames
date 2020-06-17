@@ -5,12 +5,16 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 
 public class PegHole extends JLabel {
 	private static final ImageIcon HOLE_IMG = new ImageIcon(Handler.getResources("GameImages/PegHole.png"));
 	private static final ImageIcon MASK = new ImageIcon(Handler.getResources("GameImages/HoleMask.png"));
 	private static final int DEPTH = 15; //How far into the hole the peg is rendered
+	private static PegHole selected;
 	private ImageIcon preScale = HOLE_IMG;
+	private ImageIcon highlight;
+	private boolean isHighlight = false;
 	private float scale = 1;
 	private int x, y; //Coords when scale = 1
 	private Peg peg;
@@ -37,10 +41,15 @@ public class PegHole extends JLabel {
 			public void mouseClicked(MouseEvent e) {
 				if ((Options.freePlay || (peg != null && !Games.is2P())) && e.getButton() == 1) {
 					setPeg(new Peg(defaultColor));
-				} else if (Options.freePlay && e.getButton() == 3) {
-					removePeg(true);
+				} else if (e.getButton() == 3) {
+					if (Options.freePlay)
+						removePeg(true);
+					else
+						select();
 				} else {
 					if (!Games.get().isDiceOnly()) {
+						if (selected != null)
+							Games.get().providePeg(selected.getPeg());
 						Games.get().check(index);
 					}
 				}
@@ -74,6 +83,27 @@ public class PegHole extends JLabel {
 		
 		addMouseMotionListener(mA);
 		addMouseListener(mA);
+	}
+	
+	private void select() {
+		if (peg != null) {
+			if (selected != null)
+				selected.deselect();
+			if (selected != this) {
+				selected = this;
+				isHighlight = true;
+				setScale(scale);
+			} else {
+				selected = null;
+				deselect();
+			}
+			
+		}
+	}
+	
+	private void deselect() {
+		isHighlight = false;
+		setScale(scale);
 	}
 	
 	public Peg getPeg() {
@@ -111,6 +141,7 @@ public class PegHole extends JLabel {
 	private void stitch() {
 		BufferedImage hole = Handler.toBufferedImage(HOLE_IMG.getImage());
 		BufferedImage p = Handler.toBufferedImage(peg.getBaseIcon().getImage());
+		BufferedImage pH = Handler.toBufferedImage(peg.getHighlight().getImage());
 		BufferedImage mask = Handler.toBufferedImage(MASK.getImage());
 		
 		BufferedImage result = new BufferedImage(p.getWidth(), p.getHeight() - DEPTH, BufferedImage.TYPE_INT_ARGB);
@@ -132,14 +163,26 @@ public class PegHole extends JLabel {
 				}
 			}
 		}
-		bGr.dispose();
 		preScale = new ImageIcon(result);
+		bGr.dispose();
+		ColorModel cm = result.getColorModel();
+		BufferedImage i2 = new BufferedImage(cm, result.copyData(result.getRaster().createCompatibleWritableRaster()),
+				cm.isAlphaPremultiplied(), null);
+		bGr = i2.createGraphics();
+		bGr.drawImage(pH, 0, 0, null);
+		highlight = new ImageIcon(i2);
+		bGr.dispose();
+		
 		setScale(scale);
 	}
 	
 	public void setScale(float i) {
 		scale = i;
-		if (preScale != null) setIcon(Handler.scale(scale, preScale));
+		if (preScale != null && !isHighlight) {
+			setIcon(Handler.scale(scale, preScale));
+		} else if (highlight != null && isHighlight) {
+			setIcon(Handler.scale(scale, highlight));
+		}
 		setBounds();
 		Peg.setScale(scale);
 	}
@@ -149,9 +192,10 @@ public class PegHole extends JLabel {
 	}
 	
 	public Peg removePeg(boolean delete) {
+		isHighlight = false;
 		Peg p = peg;
 		if (p != null) {
-			p.hole = null;
+			//p.hole = null;
 			if (delete)
 				Peg.delete(p);
 		}
