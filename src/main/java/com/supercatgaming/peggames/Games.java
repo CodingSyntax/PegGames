@@ -46,12 +46,14 @@ public final class Games {
 	}
 	
 	private static void nextPlayerTurn() {
-		if (pTurn == 1) {
-			pTurn = 2;
-			get().updateTitle(" - P2's turn");
-		} else if (pTurn == 2) {
-			pTurn = 1;
-			get().updateTitle(" - P1's turn");
+		if (!get().won) {
+			if (pTurn == 1) {
+				pTurn = 2;
+				get().updateTitle(" - P2's turn");
+			} else if (pTurn == 2) {
+				pTurn = 1;
+				get().updateTitle(" - P1's turn");
+			}
 		}
 	}
 	
@@ -94,6 +96,7 @@ public final class Games {
 		BoardLabel board;
 		JLabel title;
 		ComponentAdapter cA;
+		boolean won;
 		
 		void updateTitle(String add) {
 			title.setText(NAME + add);
@@ -115,6 +118,7 @@ public final class Games {
 			p1Color = -1;
 			p2Color = -1;
 			pTurn = 1;
+			won = false;
 			
 			title = new JLabel(NAME + (Options.freePlay ? " - Freeplay" : selectColors ? " - Select P1 Color"
 					: ""));
@@ -270,7 +274,7 @@ public final class Games {
 			roll.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					if (isDiceOnly() && (p2Color != -1 || Options.freePlay))
+					if (isDiceOnly() && (p2Color != -1 || Options.freePlay) && !won)
 						if (Options.useRealDice) {
 							if (roll.getText().equals("OK"))
 							{
@@ -600,6 +604,7 @@ public final class Games {
 					p1++;
 					if (p1 == 11) {
 						updateTitle(" - P1 wins!");
+						won = true;
 					} else if (p1 == 12) {
 						p1 = 0;
 					}
@@ -621,6 +626,7 @@ public final class Games {
 					p2++;
 					if (p2 == 11) {
 						updateTitle(" - P2 wins!");
+						won = true;
 					} else if (p2 == 12) {
 						p2 = 0;
 					}
@@ -714,6 +720,7 @@ public final class Games {
 						p = board.getHoleAt(new int[] {0, p1}).removePeg();
 					p1++;
 					if (p1 == 11) {
+						won = true;
 						updateTitle(" - P1 wins!");
 					} else if (p1 == 12) {
 						p1 = 0;
@@ -741,6 +748,7 @@ public final class Games {
 						p = board.getHoleAt(new int[] {0, p2}).removePeg();
 					p2++;
 					if (p2 == 11) {
+						won = true;
 						updateTitle(" - P2 wins!");
 					} else if (p2 == 12) {
 						p2 = 0;
@@ -863,6 +871,9 @@ public final class Games {
 			});
 		}
 		
+		int p1 = 0;
+		int p2 = 0;
+		
 		public boolean isDiceOnly() {
 			return true;
 		}
@@ -874,15 +885,44 @@ public final class Games {
 		}
 		
 		public void play() {
-			setup();
+			setup(!Options.freePlay);
 		}
 		
 		public void rolled(int dice, int dice2) {
-		
+			if (pTurn == 1) {
+				if (dice == p1 + 2 || dice2 == p1 + 2 || dice + dice2 == p1 + 2) {
+					Peg p = board.getHoleAt(new int[] {0, p1}).removePeg();
+					p1++;
+					if (p1 == 9) {
+						won = true;
+						updateTitle(" - P1 wins!");
+					} else if (p1 == 10) {
+						p1 = 0;
+					}
+					board.getHoleAt(new int[] {0, p1}).setPeg(p);
+				}
+			} else {
+				if (dice == p2 + 2 || dice2 == p2 + 2 || dice + dice2 == p2 + 2) {
+					Peg p = board.getHoleAt(new int[] {1, p2}).removePeg();
+					p2++;
+					if (p2 == 9) {
+						won = true;
+						updateTitle(" - P2 wins!");
+					} else if (p2 == 10) {
+						p2 = 0;
+					}
+					board.getHoleAt(new int[] {1, p2}).setPeg(p);
+				}
+			}
+			
+			nextPlayerTurn();
 		}
 		
 		public void begin() {
-		
+			p1 = 0;
+			p2 = 0;
+			board.getHoleAt(new int[] {0, 0}).setPeg(new Peg(p1Color));
+			board.getHoleAt(new int[] {1, 0}).setPeg(new Peg(p2Color));
 		}
 	}
 }

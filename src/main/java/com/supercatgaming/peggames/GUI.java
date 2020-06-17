@@ -308,6 +308,7 @@ public class GUI {
 		JLabel title = new JLabel("Options");
 		CheckBox freePlay = new CheckBox("Free play: Play how you want, rules aren't enforced", Options.freePlay);
 		CheckBox realDice = new CheckBox("Use real dice instead of RNG", Options.useRealDice);
+		CheckBox endGame = new CheckBox("Prevent game from continuing once a player has won", Options.endGameOnWin);
 		Slider volume = new Slider(2, 100, Options.volume);
 		JLabel volumeL = new JLabel("Volume:");
 		JLabel colorTitle = new JLabel("Custom Colors");
@@ -351,6 +352,7 @@ public class GUI {
 			public void mouseClicked(MouseEvent e) {
 				Options.freePlay = freePlay.isSelected();
 				Options.useRealDice = realDice.isSelected();
+				Options.endGameOnWin = endGame.isSelected();
 				Options.save();
 				mainMenu(false);
 			}
@@ -370,8 +372,10 @@ public class GUI {
 				freePlay.setLocation((lw - freePlay.getWidth())/2, lh/4);
 				realDice.setSize(getLengthHTML(realDice.getText(), realDice.getFont(), realDice) + 25, 20);
 				realDice.setLocation((lw - realDice.getWidth())/2, getBottom(freePlay) + S);
+				endGame.setSize(getLengthHTML(endGame.getText(), endGame.getFont(), endGame) + 25, 20);
+				endGame.setLocation((lw - endGame.getWidth())/2, getBottom(realDice) + S);
 				volumeL.setSize(getLengthHTML(volumeL), getHeightHTML(volumeL));
-				volumeL.setLocation(5, getBottom(realDice) + S);
+				volumeL.setLocation(5, getBottom(endGame) + S);
 				volume.setSize(lw - (volumeL.getX() + volumeL.getWidth() + 5), 20);
 				volume.setLocation(5 + volumeL.getX() + volumeL.getWidth(), volumeL.getY());
 				colorTitle.setSize(getLengthHTML(colorTitle), getHeightHTML(colorTitle));
@@ -403,7 +407,7 @@ public class GUI {
 		cA.componentResized(null);
 		
 		addCL(cA);
-		addToLayer(title, freePlay, realDice, volumeL, volume, colorTitle, ok, add);
+		addToLayer(title, freePlay, realDice, endGame, volumeL, volume, colorTitle, ok, add);
 		
 		frame.repaint();
 	}
