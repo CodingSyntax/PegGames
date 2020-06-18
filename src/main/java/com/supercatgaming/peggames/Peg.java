@@ -80,6 +80,10 @@ public class Peg extends JLabel {
 		return highlightIco;
 	}
 	
+	public PegHole getHole() {
+		return hole;
+	}
+	
 	private void addColor() {
 		Color b = new Color(colors[color].getRed(), colors[color].getGreen(), colors[color].getBlue(), 128);
 		//Convert icon to buffered

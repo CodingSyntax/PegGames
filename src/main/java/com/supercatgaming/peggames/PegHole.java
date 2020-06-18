@@ -6,12 +6,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.util.ArrayList;
 
 public class PegHole extends JLabel {
 	private static final ImageIcon HOLE_IMG = new ImageIcon(Handler.getResources("GameImages/PegHole.png"));
 	private static final ImageIcon MASK = new ImageIcon(Handler.getResources("GameImages/HoleMask.png"));
 	private static final int DEPTH = 15; //How far into the hole the peg is rendered
 	private static PegHole selected;
+	private static ArrayList<PegHole> multiSelect = new ArrayList<>();
 	private ImageIcon preScale = HOLE_IMG;
 	private ImageIcon highlight;
 	private boolean isHighlight = false;
@@ -50,6 +52,8 @@ public class PegHole extends JLabel {
 					if (!Games.get().isDiceOnly()) {
 						if (selected != null)
 							Games.get().providePeg(selected.getPeg());
+						else
+							Games.get().providePeg(null);
 						Games.get().check(index);
 					}
 				}
@@ -87,17 +91,27 @@ public class PegHole extends JLabel {
 	
 	private void select() {
 		if (peg != null) {
-			if (selected != null)
-				selected.deselect();
-			if (selected != this) {
-				selected = this;
-				isHighlight = true;
-				setScale(scale);
+			if (!Games.get().isChallenger()) {
+				if (selected != null)
+					selected.deselect();
+				if (selected != this) {
+					selected = this;
+					isHighlight = true;
+					setScale(scale);
+				} else {
+					selected = null;
+					deselect();
+				}
 			} else {
-				selected = null;
-				deselect();
+				if (!multiSelect.contains(this)) {
+					multiSelect.add(this);
+					isHighlight = true;
+					setScale(scale);
+				} else {
+					multiSelect.remove(this);
+					deselect();
+				}
 			}
-			
 		}
 	}
 	
@@ -132,6 +146,10 @@ public class PegHole extends JLabel {
 	public static void setDefaultColor(int c) {
 		if (c >= Options.getColors().length) c = Options.getColors().length - 1;
 		defaultColor = c;
+	}
+	
+	public static PegHole[] getSelected() {
+		return multiSelect.toArray(PegHole[]::new);
 	}
 	
 	private void setBounds() {
@@ -193,6 +211,7 @@ public class PegHole extends JLabel {
 	
 	public Peg removePeg(boolean delete) {
 		isHighlight = false;
+		multiSelect.remove(this);
 		Peg p = peg;
 		if (p != null) {
 			//p.hole = null;

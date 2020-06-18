@@ -9,6 +9,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -69,7 +70,7 @@ public final class Games {
 		} else {
 			PegHole h = get().board.dropPeg(po.x, po.y, p);
 			if (h != null && !Options.freePlay) {
-				get().providePeg(p);
+				get().providePeg(h.getPeg());
 				get().check(h.getIndex());
 			}
 		}
@@ -97,6 +98,7 @@ public final class Games {
 		JLabel title;
 		ComponentAdapter cA;
 		boolean won;
+		Peg provided;
 		
 		void updateTitle(String add) {
 			title.setText(NAME + add);
@@ -104,11 +106,18 @@ public final class Games {
 		}
 		
 		public abstract boolean isDiceOnly(); //This game has nothing to do with moving pegs or stats, just dice
-		public abstract void providePeg(Peg p);
 		public abstract void check(int[] pos);
 		public abstract void play();
 		public abstract void rolled(int dice, int dice2);
 		public abstract void begin();
+		public abstract boolean allowPegMoving();
+		public boolean isChallenger() {
+			return get() instanceof Challenger;
+		}
+		
+		public void providePeg(Peg p) {
+			provided = p;
+		}
 		
 		void setup() {
 			setup(false);
@@ -274,23 +283,44 @@ public final class Games {
 			roll.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					if (isDiceOnly() && (p2Color != -1 || Options.freePlay) && !won)
+					if (isDiceOnly() && (p2Color != -1 || Options.freePlay || !is2P()) && !won)
 						if (Options.useRealDice) {
-							if (roll.getText().equals("OK"))
-							{
-								roll.setText("Roll");
-								GUI.removeFromLayer(die1, die2);
-								rolled(die1.getDieNum(), die2.getDieNum());
-								cA.componentResized(null);
+							if (!isChallenger()) {
+								if (roll.getText().equals("OK")) {
+									roll.setText("Roll");
+									GUI.removeFromLayer(die1, die2);
+									rolled(die1.getDieNum(), die2.getDieNum());
+									cA.componentResized(null);
+								} else {
+									GUI.addToLayer(die1, die2);
+									updateTitle(" - P" + pTurn + ", what did you roll?");
+									roll.setText("OK");
+								}
 							} else {
-								GUI.addToLayer(die1, die2);
-								updateTitle(" - P" + pTurn + ", what did you roll?");
-								roll.setText("OK");
+								switch (roll.getText()) {
+									case "Select":
+										if (((Challenger)get()).checkPegs())
+											roll.setText("Roll");
+										break;
+									case "OK":
+										roll.setText("Select");
+										GUI.removeFromLayer(die1, die2);
+										rolled(die1.getDieNum(), die2.getDieNum());
+										cA.componentResized(null);
+										break;
+									case "Roll":
+										GUI.addToLayer(die1, die2);
+										updateTitle(" - P" + pTurn + ", what did you roll?");
+										roll.setText("OK");
+										break;
+								}
 							}
 						} else {
 							switch (roll.getText()) {
 								case "Stop":
 									roll.setText("OK");
+									updateTitle(" - P" + pTurn + " rolled: "
+											+ die1.getDieNum() + " + " + die2.getDieNum());
 									break;
 								case "Roll":
 									GUI.addToLayer(die1, die2);
@@ -310,10 +340,17 @@ public final class Games {
 									randomize.start();
 									break;
 								case "OK":
-									roll.setText("Roll");
+									if (isChallenger())
+										roll.setText("Select");
+									else
+										roll.setText("Roll");
 									rolled(die1.getDieNum(), die2.getDieNum());
 									GUI.removeFromLayer(die1, die2);
 									cA.componentResized(null);
+									break;
+								case "Select":
+									if (((Challenger)get()).checkPegs())
+										roll.setText("Roll");
 									break;
 							}
 						}
@@ -354,7 +391,9 @@ public final class Games {
 			return false;
 		}
 		
-		public void providePeg(Peg p) {}
+		public boolean allowPegMoving() {
+			return false;
+		}
 		
 		public void check(int[] pos) {
 			if (board.getPegAt(pos) == null) {
@@ -489,7 +528,9 @@ public final class Games {
 			return false;
 		}
 		
-		public void providePeg(Peg p) {}
+		public boolean allowPegMoving() {
+			return true;
+		}
 		
 		public void check(int[] pos) {
 		
@@ -546,7 +587,9 @@ public final class Games {
 			return false;
 		}
 		
-		public void providePeg(Peg p) {}
+		public boolean allowPegMoving() {
+			return false;
+		}
 		
 		public void check(int[] pos) {
 		
@@ -583,7 +626,9 @@ public final class Games {
 			return true;
 		}
 		
-		public void providePeg(Peg p) {}
+		public boolean allowPegMoving() {
+			return false;
+		}
 		
 		public void check(int[] pos) {
 		
@@ -672,7 +717,9 @@ public final class Games {
 			return true;
 		}
 		
-		public void providePeg(Peg p) {}
+		public boolean allowPegMoving() {
+			return false;
+		}
 		
 		public void check(int[] pos) {
 		
@@ -785,22 +832,109 @@ public final class Games {
 			}});
 		}
 		
+		int num = -1;
+		
+		public boolean checkPegs() {
+			PegHole[] hs = PegHole.getSelected();
+			int total = 0;
+			for (PegHole h : hs) {
+				total += h.getIndex()[1] + 1;
+			}
+			if (total == num) {
+				num = -1;
+				for (PegHole h : hs) {
+					Peg.delete(h.removePeg());
+				}
+				updateTitle(" - Removed");
+				return true;
+			} else {
+				updateTitle(" - The selected pegs don't add up to " + num);
+			}
+			return false;
+		}
+		
+		private void checkLoss() {
+//			int max = 0;
+//			int add = 0;
+//			boolean work = false;
+//
+//			for (int i = 0; i < Math.min(9, num + 1); i++) {
+//				if (board.getHoleAt(new int[] {0,i}).getPeg() != null) {
+//					if (num >= i+1) {
+//						max = i+1;
+//						add += i+1;
+//						if (add == num) {
+//							work = true;
+//							break;
+//						}
+//					}
+//				}
+//			}
+//
+//			if (max < num || !work) {
+//				System.err.println("Cannot continue game?");
+//			}
+			ArrayList<Integer> nums = new ArrayList<>();
+			for (int i = 0; i < Math.min(9, num + 1); i++) {
+				if (board.getHoleAt(new int[] {0,i}).getPeg() != null) {
+					nums.add(i + 1);
+				}
+			}
+			
+			if (!Solve(nums)){
+				System.err.println("Cannot continue game?");
+			}
+		}
+		
+		private ArrayList<ArrayList<Integer>> mResults;
+		
+		public boolean Solve(ArrayList<Integer> elements) {
+			
+			mResults = new ArrayList<>();
+			checkInts(0,
+					new ArrayList<>(), elements, 0);
+			return mResults.size() > 0;
+		}
+		
+		private void checkInts(int currentSum, ArrayList<Integer> included, ArrayList<Integer> notIncluded,
+								  int startIndex) {
+			if (mResults.size() > 0) return;
+			for (int index = startIndex; index < notIncluded.size(); index++) {
+				int nextValue = notIncluded.get(index);
+				if (currentSum + nextValue == num) {
+					ArrayList<Integer> newResult = new ArrayList<>(included);
+					newResult.add(nextValue);
+					mResults.add(newResult);
+				}
+				else if (currentSum + nextValue < num) {
+					ArrayList<Integer> nextIncluded = new ArrayList<>(included);
+					nextIncluded.add(nextValue);
+					ArrayList<Integer> nextNotIncluded = new ArrayList<>(notIncluded);
+					nextNotIncluded.remove((Integer)nextValue);
+					checkInts(currentSum + nextValue,
+							nextIncluded, nextNotIncluded, startIndex + 1);
+				}
+			}
+		}
+		
+		
 		public boolean isDiceOnly() {
 			return true;
 		}
 		
-		public void providePeg(Peg p) {}
-		
-		public void check(int[] pos) {
-		
+		public boolean allowPegMoving() {
+			return false;
 		}
+		
+		public void check(int[] pos) {} //Not used, pegs will not be dropped in this game!
 		
 		public void play() {
 			setup();
 		}
 		
 		public void rolled(int dice, int dice2) {
-		
+			num = dice + dice2;
+			checkLoss();
 		}
 		
 		public void begin() {
@@ -832,7 +966,9 @@ public final class Games {
 			return false;
 		}
 		
-		public void providePeg(Peg p) {}
+		public boolean allowPegMoving() {
+			return true;
+		}
 		
 		public void check(int[] pos) {
 		
@@ -878,7 +1014,9 @@ public final class Games {
 			return true;
 		}
 		
-		public void providePeg(Peg p) {}
+		public boolean allowPegMoving() {
+			return false;
+		}
 		
 		public void check(int[] pos) {
 		
