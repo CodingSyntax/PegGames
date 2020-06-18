@@ -218,6 +218,7 @@ public final class Games {
 								deleteOnPalette = false;
 								updateTitle(" - P1's turn");
 								GUI.repaintLayer();
+								PegHole.loosePeg = false;
 								begin();
 							} else {
 								updateTitle(" - Select a different color for P2");
@@ -269,8 +270,10 @@ public final class Games {
 				loc++;
 				buttons.add(b);
 				
-				if(!selectColors)
+				if(!selectColors) {
+					PegHole.loosePeg = false;
 					begin();
+				}
 			}
 			
 			quit.addMouseListener(new MouseAdapter() {
@@ -399,8 +402,13 @@ public final class Games {
 			if (board.getPegAt(pos) == null) {
 				board.getHoleAt(pos).setPeg(free);
 				nextPlayerTurn();
-				if (checkWin() != -1)
+				int cW = checkWin();
+				if (cW != -1) {
 					complete = true;
+					if (cW != 0) {
+						Sounds.playWin();
+					}
+				}
 				summonPeg();
 				GUI.repaintLayer();
 			}
@@ -523,6 +531,7 @@ public final class Games {
 							{{54, 407}, {155, 407}, {254, 406}, {356, 404}, {454, 402}}
 					});
 		}
+		int turn = 0;
 		
 		public boolean isDiceOnly() {
 			return false;
@@ -539,9 +548,13 @@ public final class Games {
 				int x = pos[0], y = pos[1], x2 = index[0], y2 = index[1];
 				if (((x + 2 == x2 || x - 2 == x2) && y == y2) || ((y + 2 == y2 || y - 2 == y2) && x == x2) ||
 						(x + 2 == x2 && y + 2 == y2) || (x - 2 == x2 && y - 2 == y2)) {
-					board.getHoleAt(pos).setPeg(provided);
-					board.getHoleAt(index).removePeg();
-					board.getHoleAt(new int[] {(x + x2) / 2, (y + y2) / 2}).removePeg(true);
+					Peg p = board.getHoleAt(new int[] {(x + x2) / 2, (y + y2) / 2}).removePeg(true);
+					if (p != null) {
+						board.getHoleAt(pos).setPeg(provided);
+						board.getHoleAt(index).removePeg();
+					} else {
+						provided.getHole().setPeg(provided);
+					}
 					PegHole.loosePeg = false;
 				} else if (provided.getHole().getPeg() == null) {
 					provided.getHole().setPeg(provided);
@@ -575,6 +588,8 @@ public final class Games {
 			board.getHoleAt(new int[] {4,1}).setPeg(new Peg(0)); //Blue
 			board.getHoleAt(new int[] {4,2}).setPeg(new Peg(4)); //White
 			board.getHoleAt(new int[] {4,3}).setPeg(new Peg(2)); //Red
+			board.getHoleAt(new int[] {4,4}).setPeg(new Peg(2)); //Red
+			turn = 0;
 		}
 	}
 	public static class Conqueror2 extends Conqueror {
@@ -601,6 +616,9 @@ public final class Games {
 					}});
 		}
 		
+		int turn = 0;
+		Peg last;
+		
 		public boolean isDiceOnly() {
 			return false;
 		}
@@ -610,7 +628,21 @@ public final class Games {
 		}
 		
 		public void check(int[] pos) {
+			if (board.getPegAt(pos) == null && (last != null && checkPos(pos[1])) || turn == 0) {
+				last = board.getHoleAt(pos).setPeg();
+				turn++;
+			}
+		}
 		
+		private boolean checkPos(int x) {
+			if (x == 0) {
+				x = 1;
+			}
+			int x2 = last.getHole().getIndex()[1];
+			if (x2 == 0) {
+				x2 = 1;
+			}
+			return (x2 + 1 == x || x2 - 1 == x) || x2 + 1 == 8 && x == 1 || x2 - 1 == 0 && x == 7;
 		}
 		
 		public void play() {
@@ -620,7 +652,8 @@ public final class Games {
 		public void rolled(int dice, int dice2) {}
 		
 		public void begin() {
-		
+			turn = 0;
+			last = null;
 		}
 	}
 	
@@ -667,6 +700,7 @@ public final class Games {
 					p1++;
 					if (p1 == 11) {
 						updateTitle(" - P1 wins!");
+						Sounds.playWin();
 						won = true;
 					} else if (p1 == 12) {
 						p1 = 0;
@@ -689,6 +723,7 @@ public final class Games {
 					p2++;
 					if (p2 == 11) {
 						updateTitle(" - P2 wins!");
+						Sounds.playWin();
 						won = true;
 					} else if (p2 == 12) {
 						p2 = 0;
@@ -786,6 +821,7 @@ public final class Games {
 					p1++;
 					if (p1 == 11) {
 						won = true;
+						Sounds.playWin();
 						updateTitle(" - P1 wins!");
 					} else if (p1 == 12) {
 						p1 = 0;
@@ -814,6 +850,7 @@ public final class Games {
 					p2++;
 					if (p2 == 11) {
 						won = true;
+						Sounds.playWin();
 						updateTitle(" - P2 wins!");
 					} else if (p2 == 12) {
 						p2 = 0;
@@ -925,7 +962,24 @@ public final class Games {
 		}
 		
 		public void check(int[] pos) {
-		
+			if (board.getPegAt(pos) == null && provided != null) {
+				int x = pos[1];
+				int x2 = provided.getHole().getIndex()[1];
+				
+				if (x - 1 == x2 || x + 1 == x2 || (x - 2 == x2 && board.getPegAt(new int[] {0, x - 1}) != null) ||
+						(x + 2 == x2 && board.getPegAt(new int[] {0, x + 1}) != null)) {
+					provided.getHole().removePeg();
+					board.getHoleAt(pos).setPeg(provided);
+					PegHole.loosePeg = false;
+				} else if (provided.getHole().getPeg() == null) {
+					provided.getHole().setPeg(provided);
+					PegHole.loosePeg = false;
+				}
+			} else if (provided != null && provided.getHole().getPeg() == null) {
+				provided.getHole().setPeg(provided);
+				PegHole.loosePeg = false;
+			}
+			GUI.repaintLayer();
 		}
 		
 		public void play() {
@@ -987,6 +1041,7 @@ public final class Games {
 					p1++;
 					if (p1 == 9) {
 						won = true;
+						Sounds.playWin();
 						updateTitle(" - P1 wins!");
 					} else if (p1 == 10) {
 						p1 = 0;
@@ -999,6 +1054,7 @@ public final class Games {
 					p2++;
 					if (p2 == 9) {
 						won = true;
+						Sounds.playWin();
 						updateTitle(" - P2 wins!");
 					} else if (p2 == 10) {
 						p2 = 0;

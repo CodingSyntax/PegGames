@@ -47,6 +47,10 @@ public class PegHole extends JLabel {
 				} else if (e.getButton() == 3) {
 					if (Options.freePlay)
 						removePeg(true);
+					else if (Games.get() instanceof Games.Conqueror && ((Games.Conqueror)Games.get()).turn == 0) {
+						removePeg(true);
+						((Games.Conqueror)Games.get()).turn++;
+					}
 					else
 						select();
 				} else {
@@ -63,8 +67,8 @@ public class PegHole extends JLabel {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				if (removed) {
-					p.followMouse(false);
 					loosePeg = true;
+					p.followMouse(false);
 				}
 				removed = false;
 			}
@@ -94,6 +98,7 @@ public class PegHole extends JLabel {
 	
 	private void select() {
 		if (peg != null) {
+			Sounds.Hover.play();
 			if (!Games.get().isChallenger()) {
 				if (selected != null)
 					selected.deselect();
@@ -141,9 +146,19 @@ public class PegHole extends JLabel {
 			stitch();
 			GUI.removeFromLayer(p);
 			p.hole = this;
+			Sounds.Place.play();
 		}
 		else setIcon(Handler.scale(scale, preScale));
 		setBounds();
+	}
+	
+	public Peg setPeg() {
+		peg = new Peg(defaultColor);
+		stitch();
+		peg.hole = this;
+		setBounds();
+		Sounds.Place.play();
+		return peg;
 	}
 	
 	public static void setDefaultColor(int c) {
@@ -217,7 +232,7 @@ public class PegHole extends JLabel {
 		multiSelect.remove(this);
 		Peg p = peg;
 		if (p != null) {
-			//p.hole = null;
+			Sounds.Remove.play();
 			if (delete)
 				Peg.delete(p);
 		}
