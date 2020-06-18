@@ -58,6 +58,11 @@ public class Peg extends JLabel {
 				if (e.getButton() == 3) {
 					if (Options.freePlay)
 						delete(p);
+					else {
+						hole.setPeg(p);
+						PegHole.loosePeg = false;
+						GUI.repaintLayer();
+					}
 				}
 			}
 		});

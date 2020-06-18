@@ -70,7 +70,7 @@ public final class Games {
 		} else {
 			PegHole h = get().board.dropPeg(po.x, po.y, p);
 			if (h != null && !Options.freePlay) {
-				get().providePeg(h.getPeg());
+				get().providePeg(p);
 				get().check(h.getIndex());
 			}
 		}
@@ -88,7 +88,7 @@ public final class Games {
 		}
 		
 		public static final int COLOR_DIST = 40;
-		static boolean deleteOnPalette = true;
+		static boolean deleteOnPalette = Options.freePlay;
 		
 		String NAME;
 		String IMG_LOC;
@@ -533,7 +533,25 @@ public final class Games {
 		}
 		
 		public void check(int[] pos) {
-		
+			if (PegHole.loosePeg == (provided.getHole().getPeg() == null))
+			if (board.getPegAt(pos) == null && provided != null) {
+				int[] index = provided.getHole().getIndex();
+				int x = pos[0], y = pos[1], x2 = index[0], y2 = index[1];
+				if (((x + 2 == x2 || x - 2 == x2) && y == y2) || ((y + 2 == y2 || y - 2 == y2) && x == x2) ||
+						(x + 2 == x2 && y + 2 == y2) || (x - 2 == x2 && y - 2 == y2)) {
+					board.getHoleAt(pos).setPeg(provided);
+					board.getHoleAt(index).removePeg();
+					board.getHoleAt(new int[] {(x + x2) / 2, (y + y2) / 2}).removePeg(true);
+					PegHole.loosePeg = false;
+				} else if (provided.getHole().getPeg() == null) {
+					provided.getHole().setPeg(provided);
+					PegHole.loosePeg = false;
+				}
+			} else if (provided != null && provided.getHole().getPeg() == null) {
+				provided.getHole().setPeg(provided);
+				PegHole.loosePeg = false;
+			}
+			GUI.repaintLayer();
 		}
 		
 		public void play() {
@@ -848,73 +866,10 @@ public final class Games {
 				updateTitle(" - Removed");
 				return true;
 			} else {
-				updateTitle(" - The selected pegs don't add up to " + num);
+				updateTitle(" - The selected pegs don't add up to " + num +
+						". Game over? Click quit to restart.");
 			}
 			return false;
-		}
-		
-		private void checkLoss() {
-//			int max = 0;
-//			int add = 0;
-//			boolean work = false;
-//
-//			for (int i = 0; i < Math.min(9, num + 1); i++) {
-//				if (board.getHoleAt(new int[] {0,i}).getPeg() != null) {
-//					if (num >= i+1) {
-//						max = i+1;
-//						add += i+1;
-//						if (add == num) {
-//							work = true;
-//							break;
-//						}
-//					}
-//				}
-//			}
-//
-//			if (max < num || !work) {
-//				System.err.println("Cannot continue game?");
-//			}
-			ArrayList<Integer> nums = new ArrayList<>();
-			for (int i = 0; i < Math.min(9, num + 1); i++) {
-				if (board.getHoleAt(new int[] {0,i}).getPeg() != null) {
-					nums.add(i + 1);
-				}
-			}
-			
-			if (!Solve(nums)){
-				System.err.println("Cannot continue game?");
-			}
-		}
-		
-		private ArrayList<ArrayList<Integer>> mResults;
-		
-		public boolean Solve(ArrayList<Integer> elements) {
-			
-			mResults = new ArrayList<>();
-			checkInts(0,
-					new ArrayList<>(), elements, 0);
-			return mResults.size() > 0;
-		}
-		
-		private void checkInts(int currentSum, ArrayList<Integer> included, ArrayList<Integer> notIncluded,
-								  int startIndex) {
-			if (mResults.size() > 0) return;
-			for (int index = startIndex; index < notIncluded.size(); index++) {
-				int nextValue = notIncluded.get(index);
-				if (currentSum + nextValue == num) {
-					ArrayList<Integer> newResult = new ArrayList<>(included);
-					newResult.add(nextValue);
-					mResults.add(newResult);
-				}
-				else if (currentSum + nextValue < num) {
-					ArrayList<Integer> nextIncluded = new ArrayList<>(included);
-					nextIncluded.add(nextValue);
-					ArrayList<Integer> nextNotIncluded = new ArrayList<>(notIncluded);
-					nextNotIncluded.remove((Integer)nextValue);
-					checkInts(currentSum + nextValue,
-							nextIncluded, nextNotIncluded, startIndex + 1);
-				}
-			}
 		}
 		
 		
@@ -934,7 +889,6 @@ public final class Games {
 		
 		public void rolled(int dice, int dice2) {
 			num = dice + dice2;
-			checkLoss();
 		}
 		
 		public void begin() {

@@ -14,6 +14,7 @@ public class PegHole extends JLabel {
 	private static final int DEPTH = 15; //How far into the hole the peg is rendered
 	private static PegHole selected;
 	private static ArrayList<PegHole> multiSelect = new ArrayList<>();
+	public static boolean loosePeg = false;
 	private ImageIcon preScale = HOLE_IMG;
 	private ImageIcon highlight;
 	private boolean isHighlight = false;
@@ -61,14 +62,16 @@ public class PegHole extends JLabel {
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				if (removed)
+				if (removed) {
 					p.followMouse(false);
+					loosePeg = true;
+				}
 				removed = false;
 			}
 
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				if (Options.freePlay) {
+				if (Options.freePlay || Games.get().allowPegMoving() && !loosePeg) {
 					Point m = GUI.getMousePos();
 					if (!checkPos(m.x - getX(), m.y - getY()) && !removed) {
 						p = removePeg();
