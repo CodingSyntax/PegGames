@@ -178,18 +178,7 @@ public class Handler {
 	 * @return the URL of the resource
 	 */
 	public static URL getResources(String loc) {
-		String dirRoot = getRawResources(loc).replaceAll("\\\\", "/").replaceAll(" ", "%20");
-		String file = "file:///" + dirRoot;
-		try {
-			return new URL(file);
-		} catch (MalformedURLException e){
-			e.printStackTrace();
-			throw new IllegalArgumentException("File at " + file + " is not found!");
-		}
-	}
-	public static String getRawResources(String relLoc) {
-		String file = System.getProperty("user.dir") + "/src/main/resources/" + relLoc;
-		return file.replace("\\", S).replace("/", S);
+		return Handler.class.getResource("/" + loc);
 	}
 	
 	/**

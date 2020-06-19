@@ -38,6 +38,7 @@ public class GUI {
 		
 		CButton bPlay = new CButton("Play");
 		CButton bOptions = new CButton("Options");
+		CButton bTut = new CButton("Controls");
 		CButton bQuit = new CButton("Quit");
 		
 		JLabel title = new JLabel("Peg Games");
@@ -51,13 +52,18 @@ public class GUI {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				selectGame();
-				//test();
 			}
 		});
 		bOptions.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				options();
+			}
+		});
+		bTut.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				tutorial();
 			}
 		});
 		bQuit.addMouseListener(new MouseAdapter() {
@@ -72,7 +78,7 @@ public class GUI {
 			public void componentResized(ComponentEvent e) {
 				int lh = layer.getHeight();
 				int lw = layer.getWidth();
-				int m = lw / 7; //amnt of buttons *2 +1
+				int m = lw / 9; //amnt of buttons *2 +1
 				
 				title.setFont(new Font("Serif", Font.PLAIN, Math.min(lw / 10, lh / 10)));
 				desc.setFont(new Font("Serif", Font.PLAIN, Math.min(lw / 20, lh / 20)));
@@ -93,12 +99,14 @@ public class GUI {
 				bPlay.setLocation(m, y);
 				bOptions.setSize(m, min);
 				bOptions.setLocation(3 * m, y);
+				bTut.setSize(m, min);
+				bTut.setLocation(5 * m, y);
 				bQuit.setSize(m, min);
-				bQuit.setLocation(5 * m, y);
+				bQuit.setLocation(7 * m, y);
 			}
 		};
 		
-		addToLayer(title, desc, iLabel, bPlay, bOptions, bQuit);
+		addToLayer(title, desc, iLabel, bPlay, bOptions, bTut, bQuit);
 		
 		frame.setContentPane(layer);
 		addCL(cA);
@@ -108,26 +116,6 @@ public class GUI {
 		frame.pack();
 		frame.setVisible(true);
 		frame.requestFocus();
-	}
-	
-	public static void test() {
-		layer.removeAll();
-		removeAllCLs();
-//		Peg p = new Peg(0);
-//		PegHole h = new PegHole(0, 0, new int[] {0, 0}, p);
-//		JLabel ho = new JLabel(h.getIcon());
-//		ho.setBounds(0, 0, h.getIcon().getIconWidth(), h.getIcon().getIconHeight());
-//		addToLayer(ho);
-//		frame.repaint();
-		BoardLabel bL = new BoardLabel(new ImageIcon(getResources("GameImages/TicTacToe.png")), new int[][][] {
-				{{45, 138}, {164, 138}, {284, 139}},
-				{{43, 259}, {162, 260}, {283, 261}},
-				{{43, 383}, {163, 384}, {281, 385}}
-		});
-		addToLayer(bL);
-		//bL.setScale(.2f);
-		bL.setBounds(0,0, bL.getIcon().getIconWidth(), bL.getIcon().getIconHeight());
-		frame.repaint();
 	}
 	
 	public static int getLayerWidth() {
@@ -173,6 +161,62 @@ public class GUI {
 	
 	public static int getBottom(Component c) {
 		return c.getY() + c.getHeight();
+	}
+	
+	public static void tutorial() {
+		layer.removeAll();
+		removeAllCLs();
+		
+		JLabel title = new JLabel("How to play:");
+		JLabel leftM = new JLabel(Handler.scale(2, new ImageIcon(getResources("Controls/LeftClick.png"))));
+		JLabel leftMDesc = new JLabel("Left click on a hole to place a peg, to change the current peg's " +
+				"color (selected by clicking on the palette), or to move the selected peg to that hole");
+		JLabel leftMD = new JLabel(Handler.scale(2, new ImageIcon(getResources("Controls/LeftClickDrag.png"))));
+		JLabel leftMDDesc = new JLabel("Left click and drag to move a peg, releasing over a hole will place it" +
+				" in the hole. Freeplay: dragging from the palette will spawn a peg, dropping it on the palette " +
+				"deletes it");
+		JLabel rightM = new JLabel(Handler.scale(2, new ImageIcon(getResources("Controls/RightClick.png"))));
+		JLabel rightMDesc = new JLabel("Right click to remove a peg (Freeplay), to send it back to it's hole " +
+				"(not Freeplay), or to select it when it is in a hole (not Freeplay)");
+		
+		CButton bExit = new CButton("Exit");
+		bExit.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				mainMenu(false);
+			}
+		});
+		
+		ComponentAdapter cA = new ComponentAdapter() {
+			@Override
+			public void componentResized(ComponentEvent e) {
+				int lw = layer.getWidth();
+				int lh = layer.getHeight();
+				autoBreak(leftMDesc, 20);
+				autoBreak(leftMDDesc, 20);
+				autoBreak(rightMDesc, 20);
+				title.setSize(getLengthHTML(title), getHeightHTML(title));
+				title.setLocation((lw - title.getWidth())/2, 10);
+				leftM.setSize(leftM.getIcon().getIconWidth(), leftM.getIcon().getIconHeight());
+				leftM.setLocation((lw - leftM.getWidth()) / 2, getBottom(title) + 5);
+				leftMDesc.setSize(getLengthHTML(leftMDesc), getHeightHTML(leftMDesc));
+				leftMDesc.setLocation((lw - leftMDesc.getWidth()) / 2, getBottom(leftM) + 5);
+				leftMD.setSize(leftMD.getIcon().getIconWidth(), leftMD.getIcon().getIconHeight());
+				leftMD.setLocation((lw - leftMD.getWidth()) / 2, getBottom(leftMDesc) + 5);
+				leftMDDesc.setSize(getLengthHTML(leftMDDesc), getHeightHTML(leftMDDesc));
+				leftMDDesc.setLocation((lw - leftMDDesc.getWidth()) / 2, getBottom(leftMD) + 5);
+				rightM.setSize(rightM.getIcon().getIconWidth(), rightM.getIcon().getIconHeight());
+				rightM.setLocation((lw - rightM.getWidth()) / 2, getBottom(leftMDDesc) + 5);
+				rightMDesc.setSize(getLengthHTML(rightMDesc), getHeightHTML(rightMDesc));
+				rightMDesc.setLocation((lw - rightMDesc.getWidth()) / 2, getBottom(rightM) + 5);
+				bExit.setSize(lw / 6, Math.min(Math.max(20, lh / 20), 50));
+				bExit.setLocation((lw - bExit.getWidth()) / 2, lh - (bExit.getHeight() + 5));
+			}
+		};
+		cA.componentResized(null);
+		addCL(cA);
+		addToLayer(title, leftM, leftMDesc, leftMD, leftMDDesc, rightM, rightMDesc, bExit);
+		frame.repaint();
 	}
 	
 	public static void selectGame() {

@@ -399,7 +399,7 @@ public final class Games {
 		}
 		
 		public void check(int[] pos) {
-			if (board.getPegAt(pos) == null) {
+			if (board.getPegAt(pos) == null && !complete) {
 				board.getHoleAt(pos).setPeg(free);
 				nextPlayerTurn();
 				int cW = checkWin();
@@ -495,6 +495,7 @@ public final class Games {
 		
 		public void play() {
 			setup(!Options.freePlay);
+			complete = true;
 		}
 		
 		public void rolled(int dice, int dice2) {}
@@ -542,28 +543,28 @@ public final class Games {
 		}
 		
 		public void check(int[] pos) {
-			if (PegHole.loosePeg == (provided.getHole().getPeg() == null))
-			if (board.getPegAt(pos) == null && provided != null) {
-				int[] index = provided.getHole().getIndex();
-				int x = pos[0], y = pos[1], x2 = index[0], y2 = index[1];
-				if (((x + 2 == x2 || x - 2 == x2) && y == y2) || ((y + 2 == y2 || y - 2 == y2) && x == x2) ||
-						(x + 2 == x2 && y + 2 == y2) || (x - 2 == x2 && y - 2 == y2)) {
-					Peg p = board.getHoleAt(new int[] {(x + x2) / 2, (y + y2) / 2}).removePeg(true);
-					if (p != null) {
-						board.getHoleAt(pos).setPeg(provided);
-						board.getHoleAt(index).removePeg();
-					} else {
+			if (provided != null && (PegHole.loosePeg == (provided.getHole().getPeg() == null)))
+				if (board.getPegAt(pos) == null) {
+					int[] index = provided.getHole().getIndex();
+					int x = pos[0], y = pos[1], x2 = index[0], y2 = index[1];
+					if (((x + 2 == x2 || x - 2 == x2) && y == y2) || ((y + 2 == y2 || y - 2 == y2) && x == x2) ||
+							(x + 2 == x2 && y + 2 == y2) || (x - 2 == x2 && y - 2 == y2)) {
+						Peg p = board.getHoleAt(new int[] {(x + x2) / 2, (y + y2) / 2}).removePeg(true);
+						if (p != null) {
+							board.getHoleAt(pos).setPeg(provided);
+							board.getHoleAt(index).removePeg();
+						} else {
+							provided.getHole().setPeg(provided);
+						}
+						PegHole.loosePeg = false;
+					} else if (provided.getHole().getPeg() == null) {
 						provided.getHole().setPeg(provided);
+						PegHole.loosePeg = false;
 					}
-					PegHole.loosePeg = false;
 				} else if (provided.getHole().getPeg() == null) {
 					provided.getHole().setPeg(provided);
 					PegHole.loosePeg = false;
 				}
-			} else if (provided != null && provided.getHole().getPeg() == null) {
-				provided.getHole().setPeg(provided);
-				PegHole.loosePeg = false;
-			}
 			GUI.repaintLayer();
 		}
 		
@@ -590,6 +591,7 @@ public final class Games {
 			board.getHoleAt(new int[] {4,3}).setPeg(new Peg(2)); //Red
 			board.getHoleAt(new int[] {4,4}).setPeg(new Peg(2)); //Red
 			turn = 0;
+			updateTitle(" - Remove a peg (RClick)");
 		}
 	}
 	public static class Conqueror2 extends Conqueror {
