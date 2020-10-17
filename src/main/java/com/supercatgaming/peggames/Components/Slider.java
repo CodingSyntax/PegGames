@@ -7,24 +7,9 @@ import java.awt.event.MouseEvent;
 
 public class Slider extends JSlider {
 	
-	public Slider() {
-		super();
-	}
-	public Slider(int orientation) {
-		super(orientation);
-	}
-	public Slider(int min, int max) {
-		super(min, max);
-	}
 	public Slider(int min, int max, int value) {
 		super(min, max, value);
-	}
-	public Slider(int orientation, int min, int max, int value) {
-		super(orientation, min, max, value);
-	}
-	public Slider(BoundedRangeModel brm)
-	{
-		super(brm);
+		setOpaque(false);
 	}
 	
 	@Override

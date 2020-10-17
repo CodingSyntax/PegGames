@@ -2,6 +2,7 @@ package com.supercatgaming.peggames;
 
 import com.supercatgaming.peggames.Components.CButton;
 import com.supercatgaming.peggames.Components.CheckBox;
+import com.supercatgaming.peggames.Components.Label;
 import com.supercatgaming.peggames.Components.Slider;
 
 import javax.swing.*;
@@ -17,6 +18,7 @@ public class GUI {
 	private static final JLayeredPane layer = new JLayeredPane();
 	
 	private static final ArrayList<ComponentListener> cLs = new ArrayList<>();
+	private static JLabel bg;
 	
 	public static void mainMenu(boolean init) {
 		if (init) {
@@ -29,11 +31,24 @@ public class GUI {
 			}
 			frame.setIconImages(iconImages);
 			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+			
+			ImageIcon background = new ImageIcon(getResources("bg.png"));
+			int bgh = background.getIconHeight();
+			int bgw = background.getIconWidth();
+			bg = new JLabel(background);
+			bg.setLocation(0,0);
+			ComponentAdapter cB = new ComponentAdapter() {
+				@Override
+				public void componentResized(ComponentEvent e) {
+					bg.setIcon(Handler.scale(Math.max(bgw, layer.getWidth()), Math.max(bgh, layer.getHeight()), background));
+					bg.setSize(layer.getWidth(), layer.getHeight());
+				}
+			};
+			frame.addComponentListener(cB);
 		}
 		else {
 			layer.setPreferredSize(layer.getSize());
-			layer.removeAll();
-			removeAllCLs();
+			clearLayer();
 		}
 		
 		CButton bPlay = new CButton("Play");
@@ -41,11 +56,13 @@ public class GUI {
 		CButton bTut = new CButton("Controls");
 		CButton bQuit = new CButton("Quit");
 		
-		JLabel title = new JLabel("Peg Games");
+		Label title = new Label("Peg Games");
 		JLabel desc = new JLabel();
+		desc.setForeground(Color.WHITE);
 		
-		ImageIcon pegboard = new ImageIcon(getResources("Icons/128.png"));
-		JLabel iLabel = new JLabel(pegboard);
+		ImageIcon peg = new ImageIcon(getResources("Icons/128.png"));
+		JLabel iLabel = new JLabel(peg);
+		
 		
 		
 		bPlay.addMouseListener(new MouseAdapter() {
@@ -89,11 +106,13 @@ public class GUI {
 				desc.setLocation((lw - desc.getWidth()) / 2, getBottom(title) + 10);
 				
 				int min = Math.max(Math.min(lw / 128, (lh / 2) / 128), 1);
-				iLabel.setIcon(Handler.scale(min, pegboard));
-				iLabel.setSize(pegboard.getIconWidth() * min, pegboard.getIconHeight() * min);
+				iLabel.setIcon(Handler.scale(min, peg));
+				iLabel.setSize(peg.getIconWidth() * min, peg.getIconHeight() * min);
 				iLabel.setLocation((lw - iLabel.getWidth()) / 2, getBottom(desc));
 				
-				min = Math.min(lh / 4, 64);
+				
+				
+				min = Math.min(lh / 4, 50);
 				bPlay.setSize(m, min);
 				int y = lh - (bPlay.getHeight() + 10);
 				bPlay.setLocation(m, y);
@@ -136,6 +155,12 @@ public class GUI {
 		cLs.clear();
 	}
 	
+	public static void clearLayer() {
+		layer.removeAll();
+		removeAllCLs();
+		layer.add(bg, 0, 0);
+	}
+	
 	public static void addToLayer(Component... components) {
 		for (Component c : components) {
 			if (c != null)
@@ -164,20 +189,19 @@ public class GUI {
 	}
 	
 	public static void tutorial() {
-		layer.removeAll();
-		removeAllCLs();
+		clearLayer();
 		
-		JLabel title = new JLabel("How to play:");
+		Label title = new Label("How to play:");
 		JLabel leftM = new JLabel(Handler.scale(2, new ImageIcon(getResources("Controls/LeftClick.png"))));
-		JLabel leftMDesc = new JLabel("Left click on a hole to place a peg, to change the current peg's " +
-				"color (selected by clicking on the palette), or to move the selected peg to that hole");
+		Label leftMDesc = new Label("Left click on a hole to place a peg, to change the current peg's " +
+				"color (selected by clicking on the palette), or to move the selected peg to that hole.");
 		JLabel leftMD = new JLabel(Handler.scale(2, new ImageIcon(getResources("Controls/LeftClickDrag.png"))));
-		JLabel leftMDDesc = new JLabel("Left click and drag to move a peg, releasing over a hole will place it" +
+		Label leftMDDesc = new Label("Left click and drag to move a peg, releasing over a hole will place it" +
 				" in the hole. Freeplay: dragging from the palette will spawn a peg, dropping it on the palette " +
-				"deletes it");
+				"deletes it.");
 		JLabel rightM = new JLabel(Handler.scale(2, new ImageIcon(getResources("Controls/RightClick.png"))));
-		JLabel rightMDesc = new JLabel("Right click to remove a peg (Freeplay), to send it back to it's hole " +
-				"(not Freeplay), or to select it when it is in a hole (not Freeplay)");
+		Label rightMDesc = new Label("Right click to send a peg back to it's hole " +
+				"(if not in a hole), or to select it when it is in a hole. Freeplay: deletes the peg.");
 		
 		CButton bExit = new CButton("Exit");
 		bExit.addMouseListener(new MouseAdapter() {
@@ -209,7 +233,7 @@ public class GUI {
 				rightM.setLocation((lw - rightM.getWidth()) / 2, getBottom(leftMDDesc) + 5);
 				rightMDesc.setSize(getLengthHTML(rightMDesc), getHeightHTML(rightMDesc));
 				rightMDesc.setLocation((lw - rightMDesc.getWidth()) / 2, getBottom(rightM) + 5);
-				bExit.setSize(lw / 6, Math.min(Math.max(20, lh / 20), 50));
+				bExit.setSize(lw / 6, Math.min(Math.max(50, lh / 20), 70));
 				bExit.setLocation((lw - bExit.getWidth()) / 2, lh - (bExit.getHeight() + 5));
 			}
 		};
@@ -220,15 +244,14 @@ public class GUI {
 	}
 	
 	public static void selectGame() {
-		layer.removeAll();
-		removeAllCLs();
+		clearLayer();
 		
-		JLabel title = new JLabel("Select a game");
+		Label title = new Label("Select a game");
 		Games.Game curr = Games.get();
-		JLabel gameTitle = new JLabel(curr.getName());
+		Label gameTitle = new Label(curr.getName());
 		final ImageIcon[] board = {new ImageIcon(getResources(curr.getImgLoc()))};
 		JLabel image = new JLabel(board[0]);
-		JLabel desc = new JLabel(curr.getInstructions());
+		Label desc = new Label(curr.getInstructions());
 		
 		CButton left = new CButton("<");
 		CButton right = new CButton(">");
@@ -301,8 +324,7 @@ public class GUI {
 		play.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				removeAllCLs();
-				layer.removeAll();
+				clearLayer();
 				frame.repaint();
 				Games.get().play();
 			}
@@ -346,16 +368,16 @@ public class GUI {
 	}
 	
 	public static void options() {
-		layer.removeAll();
-		removeAllCLs();
+		clearLayer();
 		
-		JLabel title = new JLabel("Options");
-		CheckBox freePlay = new CheckBox("Free play: Play how you want, rules aren't enforced", Options.freePlay);
+		Label title = new Label("Options");
+		CheckBox freePlay = new CheckBox("Freeplay: Play how you want, rules aren't enforced", Options.freePlay);
 		CheckBox realDice = new CheckBox("Use real dice instead of RNG", Options.useRealDice);
+		realDice.setToolTipText("When you roll, you will be asked to input what you have rolled.");
 		CheckBox endGame = new CheckBox("Prevent game from continuing once a player has won", Options.endGameOnWin);
 		Slider volume = new Slider(2, 100, Options.volume);
-		JLabel volumeL = new JLabel("Volume:");
-		JLabel colorTitle = new JLabel("Custom Colors");
+		Label volumeL = new Label("Volume:");
+		Label colorTitle = new Label("Custom Colors");
 		ArrayList<CButton> colors = new ArrayList<>();
 		int loc = 0;
 		for (Color c : Options.customColors) {
@@ -419,8 +441,8 @@ public class GUI {
 				endGame.setSize(getLengthHTML(endGame.getText(), endGame.getFont(), endGame) + 25, 20);
 				endGame.setLocation((lw - endGame.getWidth())/2, getBottom(realDice) + S);
 				volumeL.setSize(getLengthHTML(volumeL), getHeightHTML(volumeL));
-				volumeL.setLocation(5, getBottom(endGame) + S);
-				volume.setSize(lw - (volumeL.getX() + volumeL.getWidth() + 5), 20);
+				volume.setSize(((lw - volumeL.getWidth()) * 9)/10, 20);
+				volumeL.setLocation((lw/2) - ((volume.getWidth() + volumeL.getWidth() + 5)/2), getBottom(endGame) + S);
 				volume.setLocation(5 + volumeL.getX() + volumeL.getWidth(), volumeL.getY());
 				colorTitle.setSize(getLengthHTML(colorTitle), getHeightHTML(colorTitle));
 				colorTitle.setLocation((lw - colorTitle.getWidth())/2, getBottom(volume) + S);
@@ -457,8 +479,7 @@ public class GUI {
 	}
 	
 	public static void editColor(int loc) {
-		layer.removeAll();
-		removeAllCLs();
+		clearLayer();
 		
 		Color c;
 		if (loc == -1) {
@@ -467,8 +488,9 @@ public class GUI {
 		} else {
 			c = Options.customColors.get(loc);
 		}
-		JLabel title = new JLabel("Edit Color");
+		Label title = new Label("Edit Color");
 		JColorChooser chooser = new JColorChooser(c);
+		chooser.setOpaque(false);
 		CButton random = new CButton("Random");
 		random.addMouseListener(new MouseAdapter() {
 			@Override
@@ -481,6 +503,8 @@ public class GUI {
 		ok.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				Color c = chooser.getColor();
+				chooser.setColor(c.getRed(), c.getGreen(), c.getBlue());
 				if (loc == -1) {
 					Options.customColors.add(chooser.getColor());
 				} else {
@@ -539,10 +563,9 @@ public class GUI {
 	}
 	
 	public static void confirmQuit() {
-		layer.removeAll();
-		removeAllCLs();
+		clearLayer();
 		
-		JLabel text = new JLabel("Are you sure?");
+		Label text = new Label("Are you sure?");
 		CButton bYes = new CButton("Yes");
 		CButton bNo = new CButton("No");
 		
