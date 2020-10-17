@@ -1,6 +1,7 @@
 package com.supercatgaming.peggames;
 
 import com.supercatgaming.peggames.Components.CButton;
+import com.supercatgaming.peggames.Components.Label;
 
 import javax.swing.*;
 
@@ -9,7 +10,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -95,7 +95,7 @@ public final class Games {
 		String INST;
 		int[][][] holesPos;
 		BoardLabel board;
-		JLabel title;
+		Label title;
 		ComponentAdapter cA;
 		boolean won;
 		Peg provided;
@@ -129,7 +129,7 @@ public final class Games {
 			pTurn = 1;
 			won = false;
 			
-			title = new JLabel(NAME + (Options.freePlay ? " - Freeplay" : selectColors ? " - Select P1 Color"
+			title = new Label(NAME + (Options.freePlay ? " - Freeplay" : selectColors ? " - Select P1 Color"
 					: ""));
 			CButton quit = new CButton("Quit");
 			CButton roll = new CButton("Roll");
@@ -598,6 +598,7 @@ public final class Games {
 		Conqueror2() {
 			super();
 			IMG_LOC = "Conqueror2";
+			NAME = "Conqueror (Re-skin)";
 			holesPos = new int[][][] {
 					{{269, 73}},
 					{{218, 165}, {322, 165}},
