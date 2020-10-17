@@ -53,6 +53,7 @@ public class GUI {
 		
 		CButton bPlay = new CButton("Play");
 		CButton bOptions = new CButton("Options");
+		CButton bTut = new CButton("Controls");
 		CButton bQuit = new CButton("Quit");
 		
 		Label title = new Label("Peg Games");
@@ -68,13 +69,18 @@ public class GUI {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				selectGame();
-				//test();
 			}
 		});
 		bOptions.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				options();
+			}
+		});
+		bTut.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				tutorial();
 			}
 		});
 		bQuit.addMouseListener(new MouseAdapter() {
@@ -89,7 +95,7 @@ public class GUI {
 			public void componentResized(ComponentEvent e) {
 				int lh = layer.getHeight();
 				int lw = layer.getWidth();
-				int m = lw / 7; //amnt of buttons *2 +1
+				int m = lw / 9; //amnt of buttons *2 +1
 				
 				title.setFont(new Font("Serif", Font.PLAIN, Math.min(lw / 10, lh / 10)));
 				desc.setFont(new Font("Serif", Font.PLAIN, Math.min(lw / 20, lh / 20)));
@@ -112,16 +118,14 @@ public class GUI {
 				bPlay.setLocation(m, y);
 				bOptions.setSize(m, min);
 				bOptions.setLocation(3 * m, y);
+				bTut.setSize(m, min);
+				bTut.setLocation(5 * m, y);
 				bQuit.setSize(m, min);
-				bQuit.setLocation(5 * m, y);
+				bQuit.setLocation(7 * m, y);
 			}
 		};
 		
-<<<<<<< Updated upstream
-		addToLayer(title, desc, iLabel, bPlay, bOptions, bQuit);
-=======
 		addToLayer(bg, title, desc, iLabel, bPlay, bOptions, bTut, bQuit);
->>>>>>> Stashed changes
 		
 		frame.setContentPane(layer);
 		addCL(cA);
@@ -131,26 +135,6 @@ public class GUI {
 		frame.pack();
 		frame.setVisible(true);
 		frame.requestFocus();
-	}
-	
-	public static void test() {
-		layer.removeAll();
-		removeAllCLs();
-//		Peg p = new Peg(0);
-//		PegHole h = new PegHole(0, 0, new int[] {0, 0}, p);
-//		JLabel ho = new JLabel(h.getIcon());
-//		ho.setBounds(0, 0, h.getIcon().getIconWidth(), h.getIcon().getIconHeight());
-//		addToLayer(ho);
-//		frame.repaint();
-		BoardLabel bL = new BoardLabel(new ImageIcon(getResources("GameImages/TicTacToe.png")), new int[][][] {
-				{{45, 138}, {164, 138}, {284, 139}},
-				{{43, 259}, {162, 260}, {283, 261}},
-				{{43, 383}, {163, 384}, {281, 385}}
-		});
-		addToLayer(bL);
-		//bL.setScale(.2f);
-		bL.setBounds(0,0, bL.getIcon().getIconWidth(), bL.getIcon().getIconHeight());
-		frame.repaint();
 	}
 	
 	public static int getLayerWidth() {
@@ -204,8 +188,6 @@ public class GUI {
 		return c.getY() + c.getHeight();
 	}
 	
-<<<<<<< Updated upstream
-=======
 	public static void tutorial() {
 		clearLayer();
 		
@@ -261,7 +243,6 @@ public class GUI {
 		frame.repaint();
 	}
 	
->>>>>>> Stashed changes
 	public static void selectGame() {
 		clearLayer();
 		
