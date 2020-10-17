@@ -9,7 +9,6 @@ import java.awt.image.ColorModel;
 import java.util.ArrayList;
 
 public class Peg extends JLabel {
-	static Color[] colors = Options.getColors();
 	final static ImageIcon desat = new ImageIcon(Handler.getResources("Peg.png"));
 	final static ImageIcon highlight = new ImageIcon(Handler.getResources("Peg_Highlight.png"));
 	static float scale = 1f;
@@ -90,7 +89,8 @@ public class Peg extends JLabel {
 	}
 	
 	private void addColor() {
-		Color b = new Color(colors[color].getRed(), colors[color].getGreen(), colors[color].getBlue(), 128);
+		Color c = getColors()[color];
+		Color b = new Color(c.getRed(), c.getGreen(), c.getBlue(), 128);
 		//Convert icon to buffered
 		BufferedImage image = Handler.toBufferedImage(desat.getImage());
 		
@@ -163,5 +163,9 @@ public class Peg extends JLabel {
 			return -1;
 		}
 		return p.color;
+	}
+	
+	public static Color[] getColors() {
+		return Options.getColors();
 	}
 }
