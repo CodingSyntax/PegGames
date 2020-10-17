@@ -106,7 +106,7 @@ public class GUI {
 			}
 		};
 		
-		addToLayer(title, desc, iLabel, bPlay, bOptions, bTut, bQuit);
+		addToLayer(bg, title, desc, iLabel, bPlay, bOptions, bTut, bQuit);
 		
 		frame.setContentPane(layer);
 		addCL(cA);
