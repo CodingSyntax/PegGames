@@ -49,6 +49,7 @@ public class PegHole extends JLabel {
 						removePeg(true);
 					else if (Games.get() instanceof Games.Conqueror && ((Games.Conqueror)Games.get()).turn == 0) {
 						removePeg(true);
+						Games.get().updateTitle("");
 						((Games.Conqueror)Games.get()).turn++;
 					}
 					else
