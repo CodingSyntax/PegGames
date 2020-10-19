@@ -1,9 +1,7 @@
 package com.supercatgaming.peggames;
 
-import com.supercatgaming.peggames.Components.CButton;
-import com.supercatgaming.peggames.Components.CheckBox;
+import com.supercatgaming.peggames.Components.*;
 import com.supercatgaming.peggames.Components.Label;
-import com.supercatgaming.peggames.Components.Slider;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,6 +17,19 @@ public class GUI {
 	
 	private static final ArrayList<ComponentListener> cLs = new ArrayList<>();
 	private static JLabel bg;
+	private static int GUIScale = 2;
+	public static Font font = new Font("Times New Roman", Font.PLAIN, 24);
+	private static Font subFont;
+	
+	private static void updateGUIScale() {
+		int lw = layer.getWidth();
+		int lh = layer.getHeight();
+		if (lw < 550 || lh < 570) GUIScale = 2;
+		else GUIScale = 3;
+		
+		font = font.deriveFont((float)(8*(GUIScale)));
+		subFont = font.deriveFont(font.getSize() * 0.75f);
+	}
 	
 	public static void mainMenu(boolean init) {
 		if (init) {
@@ -40,6 +51,7 @@ public class GUI {
 			ComponentAdapter cB = new ComponentAdapter() {
 				@Override
 				public void componentResized(ComponentEvent e) {
+					updateGUIScale();
 					bg.setIcon(Handler.scale(Math.max(bgw, layer.getWidth()), Math.max(bgh, layer.getHeight()), background));
 					bg.setSize(layer.getWidth(), layer.getHeight());
 				}
@@ -51,10 +63,10 @@ public class GUI {
 			clearLayer();
 		}
 		
-		CButton bPlay = new CButton("Play");
-		CButton bOptions = new CButton("Options");
-		CButton bTut = new CButton("Controls");
-		CButton bQuit = new CButton("Quit");
+		QButton bPlay = new QButton("Play", QButton.Type.Thin);
+		QButton bOptions = new QButton("Options", QButton.Type.Thin);
+		QButton bTut = new QButton("Controls", QButton.Type.Thin);
+		QButton bQuit = new QButton("Quit", QButton.Type.Thin);
 		
 		Label title = new Label("Peg Games");
 		JLabel desc = new JLabel();
@@ -95,7 +107,6 @@ public class GUI {
 			public void componentResized(ComponentEvent e) {
 				int lh = layer.getHeight();
 				int lw = layer.getWidth();
-				int m = lw / 9; //amnt of buttons *2 +1
 				
 				title.setFont(new Font("Serif", Font.PLAIN, Math.min(lw / 10, lh / 10)));
 				desc.setFont(new Font("Serif", Font.PLAIN, Math.min(lw / 20, lh / 20)));
@@ -111,17 +122,19 @@ public class GUI {
 				iLabel.setLocation((lw - iLabel.getWidth()) / 2, getBottom(desc));
 				
 				
-				
-				min = Math.min(lh / 4, 50);
-				bPlay.setSize(m, min);
+				bPlay.setScale(GUIScale - 1);
+				bOptions.setScale(GUIScale - 1);
+				bTut.setScale(GUIScale - 1);
+				bQuit.setScale(GUIScale - 1);
+				//min = Math.min(lh / 4, 50);
+				//bPlay.setSize(m, min);
+				int w = bPlay.getWidth() / 2;
+				int m = lw / 5;
 				int y = lh - (bPlay.getHeight() + 10);
-				bPlay.setLocation(m, y);
-				bOptions.setSize(m, min);
-				bOptions.setLocation(3 * m, y);
-				bTut.setSize(m, min);
-				bTut.setLocation(5 * m, y);
-				bQuit.setSize(m, min);
-				bQuit.setLocation(7 * m, y);
+				bPlay.setLocation(m - w, y);
+				bOptions.setLocation(2 * m - w, y);
+				bTut.setLocation(3 * m - w, y);
+				bQuit.setLocation(4 * m - w, y);
 			}
 		};
 		
@@ -203,7 +216,7 @@ public class GUI {
 		Label rightMDesc = new Label("Right click to send a peg back to it's hole " +
 				"(if not in a hole), or to select it when it is in a hole. Freeplay: deletes the peg.");
 		
-		CButton bExit = new CButton("Exit");
+		QButton bExit = new QButton("Exit", QButton.Type.Thin);
 		bExit.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -253,11 +266,11 @@ public class GUI {
 		JLabel image = new JLabel(board[0]);
 		Label desc = new Label(curr.getInstructions());
 		
-		CButton left = new CButton("<");
-		CButton right = new CButton(">");
+		QButton left = new QButton("<", QButton.Type.Small);
+		QButton right = new QButton(">", QButton.Type.Small);
 		
-		CButton play = new CButton("Play");
-		CButton cancel = new CButton("Cancel");
+		QButton play = new QButton("Play", QButton.Type.Thin);
+		QButton cancel = new QButton("Cancel", QButton.Type.Thin);
 		
 		ComponentAdapter cA = new ComponentAdapter() {
 			@Override
@@ -412,7 +425,7 @@ public class GUI {
 		add.setMargin(new Insets(0,0,0,0));//remove ellipsis
 		add.setToolTipText("Add a color");
 		
-		CButton ok = new CButton("OK");
+		QButton ok = new QButton("OK", QButton.Type.Thin);
 		ok.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -491,7 +504,7 @@ public class GUI {
 		Label title = new Label("Edit Color");
 		JColorChooser chooser = new JColorChooser(c);
 		chooser.setOpaque(false);
-		CButton random = new CButton("Random");
+		QButton random = new QButton("Random", QButton.Type.Thin);
 		random.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -499,7 +512,7 @@ public class GUI {
 				chooser.setColor(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
 			}
 		});
-		CButton ok = new CButton(loc == -1 ? "Add" : "Change");
+		QButton ok = new QButton(loc == -1 ? "Add" : "Change", QButton.Type.Thin);
 		ok.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -513,7 +526,7 @@ public class GUI {
 				options();
 			}
 		});
-		CButton del = new CButton("Delete");
+		QButton del = new QButton("Delete", QButton.Type.Thin);
 		del.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -525,7 +538,7 @@ public class GUI {
 		});
 		if (loc == -1)
 			del.setEnabled(false);
-		CButton cancel = new CButton("Cancel");
+		QButton cancel = new QButton("Cancel", QButton.Type.Thin);
 		cancel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -566,8 +579,8 @@ public class GUI {
 		clearLayer();
 		
 		Label text = new Label("Are you sure?");
-		CButton bYes = new CButton("Yes");
-		CButton bNo = new CButton("No");
+		QButton bYes = new QButton("Yes", QButton.Type.Thin);
+		QButton bNo = new QButton("No", QButton.Type.Thin);
 		
 		bYes.addMouseListener(new MouseAdapter() {
 			@Override
