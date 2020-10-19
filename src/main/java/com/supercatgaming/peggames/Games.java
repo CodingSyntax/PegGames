@@ -2,6 +2,7 @@ package com.supercatgaming.peggames;
 
 import com.supercatgaming.peggames.Components.CButton;
 import com.supercatgaming.peggames.Components.Label;
+import com.supercatgaming.peggames.Components.QButton;
 
 import javax.swing.*;
 
@@ -131,8 +132,8 @@ public final class Games {
 			
 			title = new Label(NAME + (Options.freePlay ? " - Freeplay" : selectColors ? " - Select P1 Color"
 					: ""));
-			CButton quit = new CButton("Quit");
-			CButton roll = new CButton("Roll");
+			QButton quit = new QButton("Quit", QButton.Type.Thin);
+			QButton roll = new QButton("Roll", QButton.Type.Thin);
 			board = new BoardLabel(new ImageIcon(getResources(getImgLoc())), holesPos);
 			is2P = selectColors;
 			//Colors

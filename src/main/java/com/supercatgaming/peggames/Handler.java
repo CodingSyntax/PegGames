@@ -59,6 +59,7 @@ public class Handler {
 	 * @return Scaled ImageIcon
 	 */
 	public static ImageIcon scale(int newWidth, int newHeight, ImageIcon icon) {
+		if (newWidth == 0 || newHeight == 0) return icon;
 		//Convert icon to buffered
 		BufferedImage sourceBufferedImage = toBufferedImage(icon.getImage());
 		//Create new buffered with specified h & w and scale
