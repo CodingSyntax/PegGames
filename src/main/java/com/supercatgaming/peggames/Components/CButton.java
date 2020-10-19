@@ -17,7 +17,6 @@ public class CButton extends JButton {
 			new ImageIcon(Handler.getResources("GameImages/Dice/5.png")),
 			new ImageIcon(Handler.getResources("GameImages/Dice/6.png"))
 	};
-	private static final ImageIcon icon = new ImageIcon(Handler.getResources("Button.png"));
 	
 	int dieNum = 0;
 	boolean isDie = false;
