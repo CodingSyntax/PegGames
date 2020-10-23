@@ -17,23 +17,23 @@ public class GUI {
 	
 	private static final ArrayList<ComponentListener> cLs = new ArrayList<>();
 	private static JLabel bg;
-	private static int GUIScale = 2;
+	private static int GUIScale = 1;
 	public static Font font = new Font("Times New Roman", Font.PLAIN, 24);
-	private static Font subFont;
+	public static Font subFont;
 	
 	private static void updateGUIScale() {
 		int lw = layer.getWidth();
 		int lh = layer.getHeight();
-		if (lw < 550 || lh < 570) GUIScale = 2;
-		else GUIScale = 3;
+		if (lw < 1500 || lh < 570) GUIScale = 1;
+		else GUIScale = 2;
 		
-		font = font.deriveFont((float)(8*(GUIScale)));
-		subFont = font.deriveFont(font.getSize() * 0.75f);
+		font = font.deriveFont((float)(30*(GUIScale)));
+		subFont = font.deriveFont(font.getSize() * 0.5f);
 	}
 	
 	public static void mainMenu(boolean init) {
 		if (init) {
-			layer.setPreferredSize(new Dimension(854, 420));
+			layer.setPreferredSize(new Dimension(854, 480));
 			frame.setTitle(Handler.NAME);
 			ArrayList<Image> iconImages = new ArrayList<>();
 			int[] nums = {16, 32, 64, 128};
@@ -79,25 +79,25 @@ public class GUI {
 		
 		bPlay.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				selectGame();
 			}
 		});
 		bOptions.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				options();
 			}
 		});
 		bTut.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				tutorial();
 			}
 		});
 		bQuit.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				confirmQuit();
 			}
 		});
@@ -121,13 +121,10 @@ public class GUI {
 				iLabel.setSize(peg.getIconWidth() * min, peg.getIconHeight() * min);
 				iLabel.setLocation((lw - iLabel.getWidth()) / 2, getBottom(desc));
 				
-				
-				bPlay.setScale(GUIScale - 1);
-				bOptions.setScale(GUIScale - 1);
-				bTut.setScale(GUIScale - 1);
-				bQuit.setScale(GUIScale - 1);
-				//min = Math.min(lh / 4, 50);
-				//bPlay.setSize(m, min);
+				bPlay.setScale(GUIScale);
+				bOptions.setScale(GUIScale);
+				bTut.setScale(GUIScale);
+				bQuit.setScale(GUIScale);
 				int w = bPlay.getWidth() / 2;
 				int m = lw / 5;
 				int y = lh - (bPlay.getHeight() + 10);
@@ -205,21 +202,24 @@ public class GUI {
 		clearLayer();
 		
 		Label title = new Label("How to play:");
-		JLabel leftM = new JLabel(Handler.scale(2, new ImageIcon(getResources("Controls/LeftClick.png"))));
+		ImageIcon leftMI = new ImageIcon(getResources("Controls/LeftClick.png"));
+		JLabel leftM = new JLabel(Handler.scale(1+GUIScale, leftMI));
 		Label leftMDesc = new Label("Left click on a hole to place a peg, to change the current peg's " +
 				"color (selected by clicking on the palette), or to move the selected peg to that hole.");
-		JLabel leftMD = new JLabel(Handler.scale(2, new ImageIcon(getResources("Controls/LeftClickDrag.png"))));
+		ImageIcon leftMDI = new ImageIcon(getResources("Controls/LeftClickDrag.png"));
+		JLabel leftMD = new JLabel(Handler.scale(1+GUIScale, leftMDI));
 		Label leftMDDesc = new Label("Left click and drag to move a peg, releasing over a hole will place it" +
 				" in the hole. Freeplay: dragging from the palette will spawn a peg, dropping it on the palette " +
 				"deletes it.");
-		JLabel rightM = new JLabel(Handler.scale(2, new ImageIcon(getResources("Controls/RightClick.png"))));
+		ImageIcon rightMI = new ImageIcon(getResources("Controls/RightClick.png"));
+		JLabel rightM = new JLabel();
 		Label rightMDesc = new Label("Right click to send a peg back to it's hole " +
 				"(if not in a hole), or to select it when it is in a hole. Freeplay: deletes the peg.");
 		
 		QButton bExit = new QButton("Exit", QButton.Type.Thin);
 		bExit.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				mainMenu(false);
 			}
 		});
@@ -229,24 +229,31 @@ public class GUI {
 			public void componentResized(ComponentEvent e) {
 				int lw = layer.getWidth();
 				int lh = layer.getHeight();
+				title.setFont(font);
+				leftMDesc.setFont(subFont);
+				leftMDDesc.setFont(subFont);
+				rightMDesc.setFont(subFont);
 				autoBreak(leftMDesc, 20);
 				autoBreak(leftMDDesc, 20);
 				autoBreak(rightMDesc, 20);
 				title.setSize(getLengthHTML(title), getHeightHTML(title));
 				title.setLocation((lw - title.getWidth())/2, 10);
+				leftM.setIcon(Handler.scale(1+GUIScale, leftMI));
 				leftM.setSize(leftM.getIcon().getIconWidth(), leftM.getIcon().getIconHeight());
 				leftM.setLocation((lw - leftM.getWidth()) / 2, getBottom(title) + 5);
 				leftMDesc.setSize(getLengthHTML(leftMDesc), getHeightHTML(leftMDesc));
 				leftMDesc.setLocation((lw - leftMDesc.getWidth()) / 2, getBottom(leftM) + 5);
+				leftMD.setIcon(Handler.scale(1+GUIScale, leftMDI));
 				leftMD.setSize(leftMD.getIcon().getIconWidth(), leftMD.getIcon().getIconHeight());
 				leftMD.setLocation((lw - leftMD.getWidth()) / 2, getBottom(leftMDesc) + 5);
 				leftMDDesc.setSize(getLengthHTML(leftMDDesc), getHeightHTML(leftMDDesc));
 				leftMDDesc.setLocation((lw - leftMDDesc.getWidth()) / 2, getBottom(leftMD) + 5);
+				rightM.setIcon(Handler.scale(1+GUIScale, rightMI));
 				rightM.setSize(rightM.getIcon().getIconWidth(), rightM.getIcon().getIconHeight());
 				rightM.setLocation((lw - rightM.getWidth()) / 2, getBottom(leftMDDesc) + 5);
 				rightMDesc.setSize(getLengthHTML(rightMDesc), getHeightHTML(rightMDesc));
 				rightMDesc.setLocation((lw - rightMDesc.getWidth()) / 2, getBottom(rightM) + 5);
-				bExit.setSize(lw / 6, Math.min(Math.max(50, lh / 20), 70));
+				bExit.setScale(GUIScale);
 				bExit.setLocation((lw - bExit.getWidth()) / 2, lh - (bExit.getHeight() + 5));
 			}
 		};
@@ -278,6 +285,7 @@ public class GUI {
 				int lw = layer.getWidth();
 				int lh = layer.getHeight();
 				
+				title.setFont(font);
 				title.setSize(getLengthHTML(title), getHeightHTML(title));
 				title.setLocation((lw - title.getWidth())/2, 10);
 				
@@ -286,29 +294,30 @@ public class GUI {
 				int h = (int)(board[0].getIconHeight() * min);
 				image.setIcon(scale(w, h, board[0]));
 				image.setSize(w, h);
-				image.setLocation((lw - image.getWidth()) / 2, (lh - image.getHeight()) / 2);
+				image.setLocation((lw - w) / 2, (lh - h) / 2);
+				gameTitle.setFont(subFont);
 				gameTitle.setSize(getLengthHTML(gameTitle), getHeightHTML(gameTitle));
 				gameTitle.setLocation((lw - gameTitle.getWidth()) / 2, image.getY() - (gameTitle.getHeight() + 15));
+				desc.setFont(subFont);
 				autoBreak(desc, 20);
 				desc.setSize(getLengthHTML(desc), getHeightHTML(desc));
 				desc.setLocation((lw - desc.getWidth()) / 2, getBottom(image) + 15);
 				
-				left.setSize(50, 50);
+				left.setScale(GUIScale);
 				left.setLocation(image.getX() - (left.getWidth() + 10), (lh - left.getHeight()) / 2);
-				right.setSize(50, 50);
+				right.setScale(GUIScale);
 				right.setLocation(image.getX() + image.getWidth() + 10, (lh - right.getHeight()) / 2);
 				
-				Dimension d = new Dimension(lw / 6, Math.min(Math.max(20, lh / 20), 50));
-				play.setSize(d);
+				play.setScale(GUIScale);
 				play.setLocation(10, lh - (play.getHeight() + 10 ));
-				cancel.setSize(d);
+				cancel.setScale(GUIScale);
 				cancel.setLocation(lw - (cancel.getWidth() + 10), lh - (cancel.getHeight() + 10 ));
 				
 			}
 		};
 		left.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				Games.prev();
 				Games.Game curr = Games.get();
 				gameTitle.setText(curr.getName());
@@ -319,7 +328,7 @@ public class GUI {
 		});
 		right.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				Games.next();
 				Games.Game curr = Games.get();
 				gameTitle.setText(curr.getName());
@@ -330,13 +339,13 @@ public class GUI {
 		});
 		cancel.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				mainMenu(false);
 			}
 		});
 		play.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				clearLayer();
 				frame.repaint();
 				Games.get().play();
@@ -401,7 +410,7 @@ public class GUI {
 			b.setToolTipText("Click to edit");
 			b.addMouseListener(new MouseAdapter() {
 				@Override
-				public void mouseClicked(MouseEvent e) {
+				public void mousePressed(MouseEvent e) {
 					editColor(l);
 				}
 			});
@@ -418,7 +427,7 @@ public class GUI {
 		colors.add(add);
 		add.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				editColor(-1);
 			}
 		});
@@ -428,7 +437,7 @@ public class GUI {
 		QButton ok = new QButton("OK", QButton.Type.Thin);
 		ok.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				Options.freePlay = freePlay.isSelected();
 				Options.useRealDice = realDice.isSelected();
 				Options.endGameOnWin = endGame.isSelected();
@@ -443,27 +452,31 @@ public class GUI {
 				int lw = layer.getWidth();
 				int lh = layer.getHeight();
 				final int S = 10; //Space
-				
+				title.setFont(font);
+				freePlay.setFont(subFont);
+				realDice.setFont(subFont);
+				endGame.setFont(subFont);
+				volumeL.setFont(subFont);
+				colorTitle.setFont(subFont);
 				title.setSize(getLengthHTML(title), getHeightHTML(title));
 				title.setLocation((lw - title.getWidth())/2, S);
-				
-				freePlay.setSize(getLengthHTML(freePlay.getText(), freePlay.getFont(), freePlay) + 25, 20);
+				freePlay.setScale(GUIScale);
+				realDice.setScale(GUIScale);
+				endGame.setScale(GUIScale);
 				freePlay.setLocation((lw - freePlay.getWidth())/2, lh/4);
-				realDice.setSize(getLengthHTML(realDice.getText(), realDice.getFont(), realDice) + 25, 20);
 				realDice.setLocation((lw - realDice.getWidth())/2, getBottom(freePlay) + S);
-				endGame.setSize(getLengthHTML(endGame.getText(), endGame.getFont(), endGame) + 25, 20);
 				endGame.setLocation((lw - endGame.getWidth())/2, getBottom(realDice) + S);
 				volumeL.setSize(getLengthHTML(volumeL), getHeightHTML(volumeL));
-				volume.setSize(((lw - volumeL.getWidth()) * 9)/10, 20);
+				volume.setSize(((lw - volumeL.getWidth()) * 9)/10, 20*GUIScale);
 				volumeL.setLocation((lw/2) - ((volume.getWidth() + volumeL.getWidth() + 5)/2), getBottom(endGame) + S);
 				volume.setLocation(5 + volumeL.getX() + volumeL.getWidth(), volumeL.getY());
 				colorTitle.setSize(getLengthHTML(colorTitle), getHeightHTML(colorTitle));
 				colorTitle.setLocation((lw - colorTitle.getWidth())/2, getBottom(volume) + S);
-				ok.setSize(lw/2, Math.min(64, lh/4));
-				ok.setLocation(lw/4, lh-(ok.getHeight() + S));
+				ok.setScale(GUIScale);
+				ok.setLocation((lw-ok.getWidth())/2, lh-(ok.getHeight() + S));
 				
 				int amnt = colors.size();
-				final int size = 20;
+				final int size = 20 * GUIScale;
 				int space = 5;
 				int max = (lw - 35) / (size + space); //max in a row
 				if (max > amnt) {
@@ -507,7 +520,7 @@ public class GUI {
 		QButton random = new QButton("Random", QButton.Type.Thin);
 		random.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				Random rand = new Random();
 				chooser.setColor(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
 			}
@@ -515,7 +528,7 @@ public class GUI {
 		QButton ok = new QButton(loc == -1 ? "Add" : "Change", QButton.Type.Thin);
 		ok.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				Color c = chooser.getColor();
 				chooser.setColor(c.getRed(), c.getGreen(), c.getBlue());
 				if (loc == -1) {
@@ -529,7 +542,7 @@ public class GUI {
 		QButton del = new QButton("Delete", QButton.Type.Thin);
 		del.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				if (loc != -1) {
 					Options.customColors.remove(loc);
 					options();
@@ -541,7 +554,7 @@ public class GUI {
 		QButton cancel = new QButton("Cancel", QButton.Type.Thin);
 		cancel.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				options();
 			}
 		});
@@ -584,13 +597,13 @@ public class GUI {
 		
 		bYes.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				System.exit(0);
 			}
 		});
 		bNo.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				mainMenu(false);
 			}
 		});
