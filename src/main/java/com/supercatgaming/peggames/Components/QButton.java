@@ -58,7 +58,7 @@ public class QButton extends JButton {
 		background = Handler.scale(width, height, unselected).getImage();
 		hoverBackground = Handler.scale(width, height, hover).getImage();
 		pressedBackground = Handler.scale(width, height, selected).getImage();
-		setFont(GUI.font);
+		setFont(GUI.subFont);
 		setSize(getDimensions());
 	}
 	
@@ -100,7 +100,7 @@ public class QButton extends JButton {
 		super.processMouseEvent(e);
 		int id = e.getID();
 		switch(id) {
-			case MouseEvent.MOUSE_CLICKED:
+			case MouseEvent.MOUSE_PRESSED:
 				Sounds.Click.play();
 				break;
 			case MouseEvent.MOUSE_ENTERED:

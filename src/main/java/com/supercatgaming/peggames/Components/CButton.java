@@ -51,7 +51,7 @@ public class CButton extends JButton {
 		super.processMouseEvent(e);
 		int id = e.getID();
 		switch(id) {
-			case MouseEvent.MOUSE_CLICKED:
+			case MouseEvent.MOUSE_PRESSED:
 				if (Options.useRealDice || !isDie) {
 					Sounds.Click.play();
 					if (isDie) {
