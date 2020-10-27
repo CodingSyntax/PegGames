@@ -31,6 +31,10 @@ public class GUI {
 		subFont = font.deriveFont(font.getSize() * 0.5f);
 	}
 	
+	public static int getScale() {
+		return GUIScale;
+	}
+	
 	public static void mainMenu(boolean init) {
 		if (init) {
 			layer.setPreferredSize(new Dimension(854, 480));
@@ -565,19 +569,22 @@ public class GUI {
 				int lw = layer.getWidth();
 				int lh = layer.getHeight();
 				
+				title.setFont(font);
+				ok.setScale(GUIScale);
+				random.setScale(GUIScale);
+				cancel.setScale(GUIScale);
+				del.setScale(GUIScale);
+				
 				title.setSize(getLengthHTML(title), getHeightHTML(title));
 				title.setLocation((lw - title.getWidth())/2, 10);
 				chooser.setBounds(10, getBottom(title) + 5, lw - 20, lh / 2);
-				random.setSize(lw / 2, Math.min(lh / 4, 64));
-				random.setLocation((lw - random.getWidth()) / 2, getBottom(chooser) + 5);
-				int m = lw / 7;
-				int min = Math.min(lh / 4, 64);
-				ok.setSize(m, min);
-				ok.setLocation(m, lh - (ok.getHeight() + 5));
-				del.setSize(m, min);
-				del.setLocation(3 * m, lh - (del.getHeight() + 5));
-				cancel.setSize(m, min);
-				cancel.setLocation(5 * m, lh - (cancel.getHeight() + 5));
+				random.setLocation((lw - random.getWidth()) / 2, getBottom(chooser) + 5*GUIScale);
+				int h = lh - (ok.getHeight() + (5 * GUIScale));
+				int w = ok.getWidth() / 2;
+				int m = lw / 4;
+				del.setLocation(2 * m - w, h);
+				ok.setLocation(m - w, h);
+				cancel.setLocation(3 * m - w, h);
 			}
 		};
 		
@@ -613,14 +620,15 @@ public class GUI {
 			public void componentResized(ComponentEvent e) {
 				int lw = layer.getWidth();
 				int lh = layer.getHeight();
-				int m = lw / 5;
-				int min = Math.min(lh / 4, 64);
+				bYes.setScale(GUIScale);
+				bNo.setScale(GUIScale);
+				int m = lw / 3;
+				int w = bYes.getWidth() / 2;
+				text.setFont(subFont);
 				text.setSize(getLengthHTML(text), getHeightHTML(text));
 				text.setLocation((lw - text.getWidth())/2, (lh/2)-text.getHeight());
-				bYes.setSize(m, min);
-				bYes.setLocation(m, lh/2 + lh/4);
-				bNo.setSize(m, min);
-				bNo.setLocation(3*m, lh/2 + lh/4);
+				bYes.setLocation(m - w, lh/2 + lh/4);
+				bNo.setLocation(2 * m - w, lh/2 + lh/4);
 			}
 		};
 		
