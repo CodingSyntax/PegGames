@@ -64,9 +64,9 @@ public final class Games {
 	}
 	
 	public static void dropPeg(Point po, Peg p) {
-		if (po.y >= GUI.getLayerHeight() - 15 || po.x >= GUI.getLayerWidth() - 15)
+		if (po.y >= GUI.getLayerHeight() - 15 || po.x >= GUI.getLayerWidth() - 15 || po.y <= 15 || po.x <= 15)
 			p.locateAt(GUI.getLayerWidth() - GUI.getLayerWidth() / 8, GUI.getLayerHeight() / 2);
-		else if (po.x >= GUI.getLayerWidth() - Game.COLOR_DIST && Game.deleteOnPalette) {
+		else if (po.x >= GUI.getLayerWidth() - Game.colorDist && Game.deleteOnPalette) {
 			Peg.delete(p);
 		} else {
 			PegHole h = get().board.dropPeg(po.x, po.y, p);
@@ -88,7 +88,7 @@ public final class Games {
 			this.holesPos = holesPos;
 		}
 		
-		public static final int COLOR_DIST = 40;
+		public static int colorDist = 18;
 		static boolean deleteOnPalette = Options.freePlay;
 		
 		String NAME;
@@ -150,22 +150,32 @@ public final class Games {
 			cA = new ComponentAdapter() {
 				@Override
 				public void componentResized(ComponentEvent e) {
+					title.setFont(GUI.subFont);
 					int lw = GUI.getLayerWidth();
 					int lh = GUI.getLayerHeight();
+					quit.setScale(GUI.getScale());
+					roll.setScale(GUI.getScale());
 					
-					int w = lw / 8;
-					int h = Math.min(Math.max(20, lh / 20), 50);
+					int w = quit.getWidth();
+					int h = quit.getHeight();
+					int s = GUI.getScale() * 5;
 					if (isDiceOnly()) {
-						quit.setSize(w, h);
-						quit.setLocation((lw / 2) - (w + 5), lh - (quit.getHeight() + 5));
-						roll.setSize(w, h);
-						roll.setLocation((lw / 2) + 5, lh - (quit.getHeight() + 5));
+						quit.setLocation((lw / 2) - (w + s), lh - (h + s));
+						roll.setLocation((lw / 2) + s, lh - (h + s));
 					} else {
-						quit.setSize(w, h);
-						quit.setLocation((lw - w) / 2, lh - (h + 5));
+						quit.setLocation((lw - w) / 2, lh - (h + s));
 					}
-					scrollPane.setSize(COLOR_DIST, lh);
-					scrollPane.setLocation(lw - COLOR_DIST, 0);
+					int sc = 5 + 5 * GUI.getScale();
+					for(Component b : buttons.getComponents()) {
+						if (b instanceof CButton) {
+							CButton c = (CButton)b;
+							c.setBorder(BorderFactory.createEmptyBorder(sc, sc, sc, sc));
+						}
+						else System.out.println("Not a button");
+					}
+					colorDist = 18 + sc * 2;
+					scrollPane.setSize(colorDist, lh);
+					scrollPane.setLocation(lw - (colorDist), 0);
 					
 					int iw = board.getBase().getIconWidth();
 					int ih = board.getBase().getIconHeight();
@@ -200,7 +210,7 @@ public final class Games {
 				int lo = loc;
 				CButton b = new CButton();
 				b.setBackground(c);
-				b.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+				
 				
 				MouseAdapter mA = new MouseAdapter() {
 					boolean drag = false;
