@@ -4,7 +4,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 public class Handler {
@@ -27,9 +26,11 @@ public class Handler {
 		else
 			if(saveLocation.mkdirs()) //if dir is created
 				System.out.println("Directory Created");
-			else
-				System.err.println("Options directory couldn't be created... Access may be denied?\n" +
-						"This means you won't be able to save your options (including colors)!");
+			else {
+				System.err.println("Options directory couldn't be created... Access may be denied, or C drive doesn't" +
+						" exist");
+				//TODO: GUI.chooseNewFolder();
+			}
 	}
 	
 	/**
@@ -179,6 +180,8 @@ public class Handler {
 	 * @return the URL of the resource
 	 */
 	public static URL getResources(String loc) {
+		//class.getResource is a URL, not a file path and is thus the same on all platforms!
+		loc = loc.replaceAll(S.equals("\\") ? S + S : S, "/");
 		return Handler.class.getResource("/" + loc);
 	}
 	

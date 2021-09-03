@@ -9,11 +9,11 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 
 public class CheckBox extends JCheckBox {
-	private static String loc = "Buttons" + Handler.S + "CheckBox" + Handler.S;
-	private static ImageIcon hover = new ImageIcon(Handler.getResources(loc + "hover.png"));
-	private static ImageIcon selected = new ImageIcon(Handler.getResources(loc + "selected.png"));
-	private static ImageIcon unselected = new ImageIcon(Handler.getResources(loc + "unselected.png"));
-	private static ImageIcon s_hover = new ImageIcon(Handler.getResources(loc + "selected_hover.png"));
+	private static final String loc = "Buttons/CheckBox/";
+	private static final ImageIcon hover = new ImageIcon(Handler.getResources(loc + "hover.png"));
+	private static final ImageIcon selected = new ImageIcon(Handler.getResources(loc + "selected.png"));
+	private static final ImageIcon unselected = new ImageIcon(Handler.getResources(loc + "unselected.png"));
+	private static final ImageIcon s_hover = new ImageIcon(Handler.getResources(loc + "selected_hover.png"));
 	
 	public CheckBox (String text, boolean selected) {
 		super(text, selected);

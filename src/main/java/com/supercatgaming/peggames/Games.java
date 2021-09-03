@@ -23,10 +23,10 @@ public final class Games {
 	private static int p1Color = -1;
 	private static int p2Color = -1;
 	private static int pTurn = 1; //player turn
-	private static Random die = new Random();
+	private static final Random die = new Random();
 	private static boolean is2P = false;
 	
-	public static final Game[] games = new Game[] {new TicTacToe(), new Conqueror(), new Conqueror2(), new Universe(),
+	private static final Game[] games = new Game[] {new TicTacToe(), new Conqueror(), new Conqueror2(), new Universe(),
 			new Racing(), new HorseRace(), new Challenger(), new Magic(), new No1Race()};
 	
 	public static void prev() {
@@ -44,17 +44,18 @@ public final class Games {
 	}
 	
 	public static int rollDie() {
+		//TODO: seems not so random
 		return die.nextInt(6) + 1;
 	}
 	
 	private static void nextPlayerTurn() {
-		if (!get().won) {
+		if (!Game.won) {
 			if (pTurn == 1) {
 				pTurn = 2;
-				get().updateTitle(" - P2's turn");
+				Game.updateTitle(" - P2's turn");
 			} else if (pTurn == 2) {
 				pTurn = 1;
-				get().updateTitle(" - P1's turn");
+				Game.updateTitle(" - P1's turn");
 			}
 		}
 	}
@@ -64,28 +65,34 @@ public final class Games {
 	}
 	
 	public static void dropPeg(Point po, Peg p) {
-		if (po.y >= GUI.getLayerHeight() - 15 || po.x >= GUI.getLayerWidth() - 15 || po.y <= 15 || po.x <= 15)
+		int margin = 15;
+		//Dropped out of bounds, put it back in bounds
+		if (po.y >= GUI.getLayerHeight() - margin || po.x >= GUI.getLayerWidth() - margin || po.y <= margin || po.x <= margin)
 			p.locateAt(GUI.getLayerWidth() - GUI.getLayerWidth() / 8, GUI.getLayerHeight() / 2);
 		else if (po.x >= GUI.getLayerWidth() - Game.colorDist && Game.deleteOnPalette) {
 			Peg.delete(p);
 		} else {
-			PegHole h = get().board.dropPeg(po.x, po.y, p);
+			PegHole h = Game.board.dropPeg(po.x, po.y, p);
 			if (h != null && !Options.freePlay) {
 				get().providePeg(p);
 				get().check(h.getIndex());
+			} else if ((Games.get() instanceof Conqueror && ((Games.Conqueror)Games.get()).turn == 0)) {
+				Peg.delete(p);
+				Game.updateTitle("");
+				PegHole.loosePeg = false;
+				((Games.Conqueror) Games.get()).turn++;
 			}
 		}
 	}
 	
 	public static abstract class Game {
-		protected Game(String name, String inst, int[][][] holesPos) {
-			this(name, name, inst, holesPos);
+		protected Game(String name, String inst) {
+			this(name, name, inst);
 		}
-		protected Game(String loc, String name, String inst, int[][][] holesPos) {
+		protected Game(String loc, String name, String inst) {
 			IMG_LOC = loc;
 			NAME = name;
 			INST = inst;
-			this.holesPos = holesPos;
 		}
 		
 		public static int colorDist = 18;
@@ -94,15 +101,15 @@ public final class Games {
 		String NAME;
 		String IMG_LOC;
 		String INST;
-		int[][][] holesPos;
-		BoardLabel board;
-		Label title;
-		ComponentAdapter cA;
-		boolean won;
-		Peg provided;
+		static int[][][] holesPos;
+		static BoardLabel board;
+		static Label title;
+		static ComponentAdapter cA;
+		static boolean won;
+		static Peg provided;
 		
-		void updateTitle(String add) {
-			title.setText(NAME + add);
+		static void updateTitle(String add) {
+			title.setText(get().NAME + add);
 			cA.componentResized(null);
 		}
 		
@@ -184,7 +191,7 @@ public final class Games {
 							(lh - ((quit.getHeight() + 5f) * 2) - 5) / ih);
 					board.setScale(Math.min(min, 1.5f));
 					board.setLocation((lw - board.getIcon().getIconWidth()) / 2, (lh - board.getIcon().getIconHeight()) / 2);
-					//not efficient, but resize is one time so it isn't important
+					//not efficient, but resize is one time, so it isn't important
 					if (board.getX() + board.getWidth() >= scrollPane.getX() - 5) {
 						min = Math.min((lw - (20f + scrollPane.getWidth())) / iw,
 								(lh - ((quit.getHeight() + 5f) * 2) - 5) / ih);
@@ -283,7 +290,6 @@ public final class Games {
 				
 				if(!selectColors) {
 					PegHole.loosePeg = false;
-					begin();
 				}
 			}
 			
@@ -297,7 +303,7 @@ public final class Games {
 			roll.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					if (isDiceOnly() && (p2Color != -1 || Options.freePlay || !is2P()) && !won)
+					if (isDiceOnly() && (p2Color != -1 || Options.freePlay || !is2P) && !won)
 						if (Options.useRealDice) {
 							if (!isChallenger()) {
 								if (roll.getText().equals("OK")) {
@@ -374,6 +380,8 @@ public final class Games {
 			GUI.addToLayer(title, board, scrollPane, quit, isDiceOnly() ? roll : null);
 			GUI.addCL(cA);
 			cA.componentResized(null);
+			if (!selectColors)
+				begin();
 		}
 		
 		public String getName() {
@@ -389,12 +397,7 @@ public final class Games {
 	
 	public static class TicTacToe extends Game {
 		TicTacToe() {
-			super("TicTacToe","Players: 2. Place \"X's\" and \"O's\" trying to get three in a row.",
-					new int[][][] {
-							{{45, 138}, {164, 138}, {284, 139}},
-							{{43, 259}, {162, 260}, {283, 261}},
-							{{43, 383}, {163, 384}, {281, 385}}
-			});
+			super("TicTacToe","Players: 2. Place \"X's\" and \"O's\" trying to get three in a row.");
 		}
 		
 		Peg free;
@@ -427,7 +430,7 @@ public final class Games {
 		
 		/**
 		 * Checks for win
-		 * @return -1 if game is undecided, 0 if tie, 1 if player 1, 2 if player 2.
+		 * @return -1 if game is undecided, 0 if tied, 1 if player 1, 2 if player 2.
 		 */
 		private int checkWin() {
 			//Check tie
@@ -505,6 +508,11 @@ public final class Games {
 		}
 		
 		public void play() {
+			holesPos = new int[][][] {
+					{{45, 138}, {164, 138}, {284, 139}},
+					{{43, 259}, {162, 260}, {283, 261}},
+					{{43, 383}, {163, 384}, {281, 385}}
+			};
 			setup(!Options.freePlay);
 			complete = true;
 		}
@@ -534,14 +542,7 @@ public final class Games {
 	public static class Conqueror extends Game {
 		Conqueror() {
 			super("Conqueror", "Players: 1. Fill all the holes with pegs except for one. " +
-					"Jump a peg and remove it from the game. Continue until you can't make any more jumps.",
-					new int[][][] {
-							{{252, 60}},
-							{{203, 147}, {303, 146}},
-							{{154, 232}, {252, 230}, {353, 230}},
-							{{101, 316}, {204, 317}, {303, 316}, {400, 315}},
-							{{54, 407}, {155, 407}, {254, 406}, {356, 404}, {454, 402}}
-					});
+					"Jump a peg and remove it from the game. Continue until you can't make any more jumps.");
 		}
 		int turn = 0;
 		
@@ -558,6 +559,7 @@ public final class Games {
 				if (board.getPegAt(pos) == null) {
 					int[] index = provided.getHole().getIndex();
 					int x = pos[0], y = pos[1], x2 = index[0], y2 = index[1];
+					//noinspection ConditionCoveredByFurtherCondition as it is reported incorrectly
 					if (((x + 2 == x2 || x - 2 == x2) && y == y2) || ((y + 2 == y2 || y - 2 == y2) && x == x2) ||
 							(x + 2 == x2 && y + 2 == y2) || (x - 2 == x2 && y - 2 == y2)) {
 						Peg p = board.getHoleAt(new int[] {(x + x2) / 2, (y + y2) / 2}).removePeg(true);
@@ -580,6 +582,21 @@ public final class Games {
 		}
 		
 		public void play() {
+			holesPos = new int[][][] {
+					{{252, 60}},
+					{{203, 147}, {303, 146}},
+					{{154, 232}, {252, 230}, {353, 230}},
+					{{101, 316}, {204, 317}, {303, 316}, {400, 315}},
+					{{54, 407}, {155, 407}, {254, 406}, {356, 404}, {454, 402}}
+			};
+			if (this instanceof Conqueror2)
+				holesPos = new int[][][] {
+						{{269, 73}},
+						{{218, 165}, {322, 165}},
+						{{164, 256}, {270, 256}, {374, 256}},
+						{{112, 349}, {218, 349}, {322, 349}, {428, 349}},
+						{{57, 436}, {163, 436}, {271, 436}, {377, 436}, {483, 436}}
+				};
 			setup();
 		}
 		
@@ -602,7 +619,7 @@ public final class Games {
 			board.getHoleAt(new int[] {4,3}).setPeg(new Peg(2)); //Red
 			board.getHoleAt(new int[] {4,4}).setPeg(new Peg(2)); //Red
 			turn = 0;
-			updateTitle(" - Remove a peg (RClick)");
+			updateTitle(" - Remove a peg");
 		}
 	}
 	public static class Conqueror2 extends Conqueror {
@@ -610,13 +627,6 @@ public final class Games {
 			super();
 			IMG_LOC = "Conqueror2";
 			NAME = "Conqueror (Re-skin)";
-			holesPos = new int[][][] {
-					{{269, 73}},
-					{{218, 165}, {322, 165}},
-					{{164, 256}, {270, 256}, {374, 256}},
-					{{112, 349}, {218, 349}, {322, 349}, {428, 349}},
-					{{57, 436}, {163, 436}, {271, 436}, {377, 436}, {483, 436}}
-			};
 		}
 	}
 	
@@ -624,10 +634,7 @@ public final class Games {
 		Universe() {
 			super("Universe", "Players: 1. Place a peg in any of the eight star holes then follow any line that " +
 					"goes from the starting star hole and put a peg into that hole. Continue the same procedure from " +
-					"that star hole until you cannot make a move. Fill 7 or 8 star holes to win.",
-					new int[][][] {{
-						{146, 159}, {340, 219}, {150, 419}, {354, 340}, {76, 237}, {263, 417}, {261, 159}, {64, 334}
-					}});
+					"that star hole until you cannot make a move. Fill 7 or 8 star holes to win.");
 		}
 		
 		int turn = 0;
@@ -660,6 +667,9 @@ public final class Games {
 		}
 		
 		public void play() {
+			holesPos = new int[][][] {{
+					{146, 159}, {340, 219}, {150, 419}, {354, 340}, {76, 237}, {263, 417}, {261, 159}, {64, 334}
+			}};
 			setup();
 		}
 		
@@ -677,11 +687,7 @@ public final class Games {
 					"roll a double or the number 1 on one die. Then that player moves to the fist hole. After the " +
 					"first hole the player must match the number in the next hole with either the total of both dice " +
 					"or a number shown on one die. If a player lands on the opponent's peg, they must go back two " +
-					"holes. Winner  is the first player to get to the eleventh hole.",
-					new int[][][] {{
-							{33, 174}, {95, 269}, {213, 290}, {331, 290}, {449, 288}, {567, 262}, {627, 168}, {564, 76},
-							{445, 52}, {328, 52}, {210, 54}, {93, 81}
-			}});
+					"holes. Winner  is the first player to get to the eleventh hole.");
 		}
 		
 		int p1 = 0;
@@ -700,8 +706,11 @@ public final class Games {
 		}
 		
 		public void play() {
+			holesPos = new int[][][] {{
+					{33, 174}, {95, 269}, {213, 290}, {331, 290}, {449, 288}, {567, 262}, {627, 168}, {564, 76},
+					{445, 52}, {328, 52}, {210, 54}, {93, 81}
+			}};
 			setup(!Options.freePlay);
-			
 		}
 		
 		public void rolled(int dice, int dice2) {
@@ -768,11 +777,7 @@ public final class Games {
 					"first. Beginning at the start hole, a player must role a 2 either on one of the two dice or a " +
 					"combination of the two to advance. For hole 3, the player must roll a 3 on one of the dice or " +
 					"combination of the two dice. Player continues until he cannot roll to move to the next hole. " +
-					"Player 2 then goes. If a player lands on opponent's peg, opponent goes back to start.",
-					new int[][][] {{
-							{50, 174}, {97, 262}, {228, 281}, {343, 286}, {448, 285}, {574, 257}, {617, 168}, {582, 78},
-							{452, 53}, {337, 52}, {228, 53}, {97, 77}
-			}});
+					"Player 2 then goes. If a player lands on opponent's peg, opponent goes back to start.");
 		}
 		
 		int p1 = 0;
@@ -793,8 +798,11 @@ public final class Games {
 		}
 		
 		public void play() {
+			holesPos = new int[][][] {{
+					{50, 174}, {97, 262}, {228, 281}, {343, 286}, {448, 285}, {574, 257}, {617, 168}, {582, 78},
+					{452, 53}, {337, 52}, {228, 53}, {97, 77}
+			}};
 			setup(!Options.freePlay);
-			
 		}
 		
 		public void rolled(int dice, int dice2) {
@@ -894,11 +902,7 @@ public final class Games {
 					"and removes a peg of total number rolled or any combination of number rolled. Example: a roll " +
 					"of 8 can remove the following combinations: 1 + 7, 2 + 6, 3 + 5, 1 + 2 + 5, 1 + 3 + 4, or 8. " +
 					"The object is to remove all the pegs. When you can't remove the number rolled your turn is over " +
-					"if playing against others. The player with the least amount of pegs remaining is the winner.",
-					new int[][][] {{
-							{34, 163}, {103, 161}, {167, 161}, {234, 161}, {299, 160}, {367, 161}, {431, 160},
-							{499, 161}, {565, 160}, {631, 162}
-			}});
+					"if playing against others. The player with the least amount of pegs remaining is the winner.");
 		}
 		
 		int num = -1;
@@ -935,6 +939,10 @@ public final class Games {
 		public void check(int[] pos) {} //Not used, pegs will not be dropped in this game!
 		
 		public void play() {
+			holesPos = new int[][][] {{
+					{34, 163}, {103, 161}, {167, 161}, {234, 161}, {299, 160}, {367, 161}, {431, 160},
+					{499, 161}, {565, 160}, {631, 162}
+			}};
 			setup();
 		}
 		
@@ -960,11 +968,7 @@ public final class Games {
 		Magic() {
 			super("Magic", "Players: 1. 4 blue pegs in left most holes and 4 red pegs in right most " +
 					"holes leaving center 2 holes empty. The object is to move blue pegs to the right and red pegs " +
-					"to the left. You can only move pegs by jumping another peg or moving 1 space to an empty hole.",
-					new int[][][] {{
-							{45, 62}, {109, 59}, {178, 59}, {244, 58}, {311, 57}, {379, 57}, {445, 57}, {511, 56},
-							{577, 54}, {642, 55}
-			}});
+					"to the left. You can only move pegs by jumping another peg or moving 1 space to an empty hole.");
 		}
 		
 		public boolean isDiceOnly() {
@@ -997,6 +1001,10 @@ public final class Games {
 		}
 		
 		public void play() {
+			holesPos = new int[][][] {{
+					{45, 62}, {109, 59}, {178, 59}, {244, 58}, {311, 57}, {379, 57}, {445, 57}, {511, 56},
+					{577, 54}, {642, 55}
+			}};
 			setup();
 		}
 		
@@ -1020,13 +1028,7 @@ public final class Games {
 			super("No1Race", "Who is No. 1", "Players: 2. Begin by rolling both dice. Each player starts on position " +
 					"1. To move to position 2 the player must roll a 2 on one dice or a combination equalling 2. To " +
 					"move on, continue in the same way -- For example: to move to position 3, roll a 3 or a " +
-					"combination equalling three. First to reach position 10 wins.",
-					new int[][][] {
-							{{41, 53}, {104, 53}, {165, 52}, {228, 53}, {289, 53}, {352, 53}, {412, 55}, {475, 55},
-									{537, 55}, {600, 54}},
-							{{40, 193}, {103, 193}, {164, 195}, {227, 195}, {288, 194}, {352, 193}, {411, 197},
-									{475, 195}, {536, 195}, {598, 195}}
-			});
+					"combination equalling three. First to reach position 10 wins.");
 		}
 		
 		int p1 = 0;
@@ -1045,6 +1047,12 @@ public final class Games {
 		}
 		
 		public void play() {
+			holesPos = new int[][][] {
+					{{41, 53}, {104, 53}, {165, 52}, {228, 53}, {289, 53}, {352, 53}, {412, 55}, {475, 55},
+							{537, 55}, {600, 54}},
+					{{40, 193}, {103, 193}, {164, 195}, {227, 195}, {288, 194}, {352, 193}, {411, 197},
+							{475, 195}, {536, 195}, {598, 195}}
+			};
 			setup(!Options.freePlay);
 		}
 		

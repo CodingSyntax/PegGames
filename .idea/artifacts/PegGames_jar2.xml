@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="PegGames:jar2">
+    <output-path>$PROJECT_DIR$/out/artifacts/PegGames_jar2</output-path>
+    <root id="archive" name="PegGames.jar">
+      <element id="module-output" name="PegGames" />
+    </root>
+  </artifact>
+</component>
