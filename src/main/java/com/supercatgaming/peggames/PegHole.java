@@ -13,7 +13,7 @@ public class PegHole extends JLabel {
 	private static final ImageIcon MASK = new ImageIcon(Handler.getResources("GameImages/HoleMask.png"));
 	private static final int DEPTH = 15; //How far into the hole the peg is rendered
 	private static PegHole selected;
-	private static ArrayList<PegHole> multiSelect = new ArrayList<>();
+	private static final ArrayList<PegHole> multiSelect = new ArrayList<>();
 	public static boolean loosePeg = false;
 	private ImageIcon preScale = HOLE_IMG;
 	private ImageIcon highlight;
@@ -49,7 +49,7 @@ public class PegHole extends JLabel {
 						removePeg(true);
 					else if (Games.get() instanceof Games.Conqueror && ((Games.Conqueror)Games.get()).turn == 0) {
 						removePeg(true);
-						Games.get().updateTitle("");
+						Games.Game.updateTitle("");
 						((Games.Conqueror)Games.get()).turn++;
 					}
 					else

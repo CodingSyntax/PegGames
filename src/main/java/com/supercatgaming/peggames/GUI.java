@@ -7,15 +7,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.EventListener;
 import java.util.Random;
 
 import static com.supercatgaming.peggames.Handler.*;
 
 public class GUI {
+	interface methodRun {
+		void run();
+	}
+	
 	private static final JFrame frame = new JFrame();
 	private static final JLayeredPane layer = new JLayeredPane();
 	
-	private static final ArrayList<ComponentListener> cLs = new ArrayList<>();
+	private static final ArrayList<EventListener> cLs = new ArrayList<>();
 	private static JLabel bg;
 	private static int GUIScale = 1;
 	public static Font font = new Font("Times New Roman", Font.PLAIN, 24);
@@ -163,8 +168,11 @@ public class GUI {
 		cLs.add(cL);
 	}
 	public static void removeAllCLs() {
-		for (ComponentListener cL : cLs) {
-			frame.removeComponentListener(cL);
+		for (EventListener cL : cLs) {
+			if (cL instanceof ComponentListener)
+				frame.removeComponentListener((ComponentListener)cL);
+			else if (cL instanceof KeyListener)
+				frame.removeKeyListener((KeyListener)cL);
 		}
 		cLs.clear();
 	}
@@ -173,6 +181,7 @@ public class GUI {
 		layer.removeAll();
 		removeAllCLs();
 		layer.add(bg, 0, 0);
+		System.gc();
 	}
 	
 	public static void addToLayer(Component... components) {
@@ -261,9 +270,9 @@ public class GUI {
 				bExit.setLocation((lw - bExit.getWidth()) / 2, lh - (bExit.getHeight() + 5));
 			}
 		};
-		cA.componentResized(null);
 		addCL(cA);
 		addToLayer(title, leftM, leftMDesc, leftMD, leftMDDesc, rightM, rightMDesc, bExit);
+		cA.componentResized(null);
 		frame.repaint();
 	}
 	
@@ -319,26 +328,25 @@ public class GUI {
 				
 			}
 		};
+		methodRun gameSet = () -> {
+			Games.Game cur = Games.get();
+			gameTitle.setText(cur.getName());
+			board[0] = new ImageIcon(getResources(cur.getImgLoc()));
+			desc.setText(cur.getInstructions());
+			cA.componentResized(null);
+		};
 		left.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				Games.prev();
-				Games.Game curr = Games.get();
-				gameTitle.setText(curr.getName());
-				board[0] = new ImageIcon(getResources(curr.getImgLoc()));
-				desc.setText(curr.getInstructions());
-				cA.componentResized(null);
+				gameSet.run();
 			}
 		});
 		right.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				Games.next();
-				Games.Game curr = Games.get();
-				gameTitle.setText(curr.getName());
-				board[0] = new ImageIcon(getResources(curr.getImgLoc()));
-				desc.setText(curr.getInstructions());
-				cA.componentResized(null);
+				gameSet.run();
 			}
 		});
 		cancel.addMouseListener(new MouseAdapter() {
@@ -355,13 +363,27 @@ public class GUI {
 				Games.get().play();
 			}
 		});
-		
-		cA.componentResized(null);
-		
 		addCL(cA);
 		addToLayer(title, gameTitle, image, desc, left, right, play, cancel);
-		
+		cA.componentResized(null);
 		frame.repaint();
+		KeyAdapter kA = new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				switch (e.getKeyCode()) {
+					case 37: //left arrow
+						Games.prev();
+						gameSet.run();
+						break;
+					case 39: //right arrow
+						Games.next();
+						gameSet.run();
+						break;
+				}
+			}
+		};
+		frame.addKeyListener(kA);
+		cLs.add(kA);
 	}
 	
 	public static void autoBreak(JLabel l, int buffer) {
@@ -500,11 +522,9 @@ public class GUI {
 				}
 			}
 		};
-		cA.componentResized(null);
-		
 		addCL(cA);
 		addToLayer(title, freePlay, realDice, endGame, volumeL, volume, colorTitle, ok, add);
-		
+		cA.componentResized(null);
 		frame.repaint();
 	}
 	
@@ -631,13 +651,9 @@ public class GUI {
 				bNo.setLocation(2 * m - w, lh/2 + lh/4);
 			}
 		};
-		
-		addToLayer(text, bYes, bNo);
-		
-		cA.componentResized(null);
-		
-		frame.repaint();
-		
 		addCL(cA);
+		addToLayer(text, bYes, bNo);
+		cA.componentResized(null);
+		frame.repaint();
 	}
 }
