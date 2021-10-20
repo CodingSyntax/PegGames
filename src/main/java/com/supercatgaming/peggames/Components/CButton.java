@@ -10,13 +10,12 @@ import java.awt.event.MouseEvent;
 
 public class CButton extends JButton {
 	private static final ImageIcon[] dice = new ImageIcon[] {
-			new ImageIcon(Handler.getResources("GameImages/Dice/1.png")),
-			new ImageIcon(Handler.getResources("GameImages/Dice/2.png")),
-			new ImageIcon(Handler.getResources("GameImages/Dice/3.png")),
-			new ImageIcon(Handler.getResources("GameImages/Dice/4.png")),
-			new ImageIcon(Handler.getResources("GameImages/Dice/5.png")),
-			new ImageIcon(Handler.getResources("GameImages/Dice/6.png"))
+			getImage(1), getImage(2), getImage(3), getImage(4), getImage(5), getImage(6)
 	};
+	
+	private static ImageIcon getImage(int dieNum) {
+		return new ImageIcon(Handler.getResources("GameImages/Dice/" + dieNum + ".png"));
+	}
 	
 	int dieNum = 0;
 	boolean isDie = false;

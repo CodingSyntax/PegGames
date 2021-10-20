@@ -26,7 +26,7 @@ public class QButton extends JButton {
 	
 	public QButton(String text, Type t) {
 		super(text);
-		String location = "Buttons" + Handler.S + t.name() + Handler.S;
+		String location = "Buttons/" + t.name() + "/";
 		setContentAreaFilled(false);
 		//init
 		unselected = new ImageIcon(Handler.getResources(location + "unselected.png"));
@@ -90,6 +90,7 @@ public class QButton extends JButton {
 	}
 	
 	public enum Type {
+		//TODO: remove large?
 		Large,
 		Small,
 		Thin
