@@ -1,7 +1,7 @@
 package com.supercatgaming.peggames;
 
-import com.supercatgaming.peggames.Components.*;
 import com.supercatgaming.peggames.Components.Label;
+import com.supercatgaming.peggames.Components.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,6 +38,19 @@ public class GUI {
 	
 	public static int getScale() {
 		return GUIScale;
+	}
+	
+	public static String changeFolder() {
+		FileDialog fD = new FileDialog((Dialog) null, "Error, select save directory", FileDialog.LOAD);
+		fD.setDirectory(Handler.getFolderLoc());
+		fD.setVisible(true);
+		while (true) {
+			String selectedFile = fD.getDirectory();
+			if (selectedFile != null)
+				return selectedFile;
+			else
+				fD.setVisible(true);
+		}
 	}
 	
 	public static void mainMenu(boolean init) {

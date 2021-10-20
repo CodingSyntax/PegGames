@@ -287,10 +287,6 @@ public final class Games {
 				b.addMouseListener(mA);
 				loc++;
 				buttons.add(b);
-				
-				if(!selectColors) {
-					PegHole.loosePeg = false;
-				}
 			}
 			
 			quit.addMouseListener(new MouseAdapter() {
@@ -380,8 +376,10 @@ public final class Games {
 			GUI.addToLayer(title, board, scrollPane, quit, isDiceOnly() ? roll : null);
 			GUI.addCL(cA);
 			cA.componentResized(null);
-			if (!selectColors)
+			if (!selectColors) {
+				PegHole.loosePeg = false;
 				begin();
+			}
 		}
 		
 		public String getName() {
