@@ -15,22 +15,27 @@ public class Handler {
 	public static final String NAME = "Peg Games";
 	private static final String OS = System.getProperty("os.name").toLowerCase();
 	//Folder location
-	public static final String FOLDER_LOC = OS.contains("windows") ? "C:\\ProgramData\\" + NAME :
+	private static String folderLoc = OS.contains("windows") ? "C:\\ProgramData\\" + NAME :
 			OS.contains("mac") ? System.getProperty("user.home") + S + NAME : "";
 	
 	//Methods
 	public static void init() {
-		File saveLocation = new File(FOLDER_LOC);
+		File saveLocation = new File(folderLoc);
 		if (saveLocation.exists())
 			System.out.println("Folder location already exists!");
 		else
-			if(saveLocation.mkdirs()) //if dir is created
-				System.out.println("Directory Created");
-			else {
+			//if(saveLocation.mkdirs()) //if dir is created
+				//System.out.println("Directory Created");
+			/*else*/ {
 				System.err.println("Options directory couldn't be created... Access may be denied, or C drive doesn't" +
 						" exist");
-				//TODO: GUI.chooseNewFolder();
+				folderLoc = GUI.changeFolder();
+				System.out.println(folderLoc);
 			}
+	}
+	
+	public static String getFolderLoc() {
+		return folderLoc;
 	}
 	
 	/**
@@ -185,6 +190,18 @@ public class Handler {
 		return Handler.class.getResource("/" + loc);
 	}
 	
+	public static File getFile(String loc) {
+		return new File(convert(loc));
+	}
+	
+	/**
+	 * Converts the given file path (given with '/' as directory delimiter) to a file path with the System's delimiter
+	 * @param s The file path to convert
+	 * @return The converted file path using the System's directory delimiter.
+	 */
+	public static String convert(String s) {
+		return s.replaceAll("/", S);
+	}
 	/**
 	 * Writes object to file
 	 * @param file File to create & write to
@@ -205,7 +222,7 @@ public class Handler {
 	 * @param obj Var to write to file
 	 */
 	public static void writeFile(String loc, Object obj) {
-		writeFileAbsolute(FOLDER_LOC + S + loc, obj);
+		writeFileAbsolute(folderLoc + S + loc, obj);
 	}
 	/**
 	 * Writes object to file
@@ -222,7 +239,7 @@ public class Handler {
 	 * @return Object saved to folder; null if file doesn't exist
 	 */
 	public static Object readFile(String loc) {
-		return readFileAbsolute(FOLDER_LOC + S + loc);
+		return readFileAbsolute(folderLoc + S + loc);
 	}
 	/**
 	 * Reads object from file
@@ -234,7 +251,7 @@ public class Handler {
 			File file = new File(loc);
 			ObjectInputStream is = new ObjectInputStream(new FileInputStream(file));
 			return is.readObject();
-		} catch (NullPointerException | IOException | ClassNotFoundException e) {
+		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 			return null;
 		}
